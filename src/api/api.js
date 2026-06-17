@@ -39,9 +39,17 @@ export const resetPassword = (body) =>
 export const getCars = (page = 1, pageSize = 8) =>
   request(`/cars?page=${page}&pageSize=${pageSize}`);
 export const getCarById = (id) => request(`/cars/${id}`);
-export const createCar = (body) =>
-  request('/cars', { method: 'POST', body: JSON.stringify(body) });
+
+/** Admin OR Agent can create a car. Pass agentId when called from an agent context. */
+export const createCar = (body, agentId = null) => {
+  const qs = agentId ? `?agentId=${agentId}` : '';
+  return request(`/cars${qs}`, { method: 'POST', body: JSON.stringify(body) });
+};
 export const deleteCar = (id) => request(`/cars/${id}`, { method: 'DELETE' });
+
+/** Returns only the cars added by this agent. */
+export const getAgentCars = (agentId, page = 1, pageSize = 20) =>
+  request(`/cars/my-fleet/${agentId}?page=${page}&pageSize=${pageSize}`);
 
 // Reservations
 export const getMyBookings = (userId, page = 1, pageSize = 10) =>
@@ -86,10 +94,18 @@ export const gateCheckin = (reservationId, body) =>
 export const getGateDetails = (reservationId) =>
   request(`/gate/details/${reservationId}`);
 
+/**
+ * Returns reservations for cars added by this agent.
+ * Used so an agent only sees customers who booked their cars.
+ */
+export const getAgentBookings = (agentId, page = 1, pageSize = 50) =>
+  request(`/gate/agent-bookings/${agentId}?page=${page}&pageSize=${pageSize}`);
+
 // Admin
 export const getAdminStats = () => request('/admin/stats');
-export const approveUser=(userId)=>request('/admin/users/${userId}/approve',{ method: 'PUT' });
-export const getPendingUsers=()=>request('admin/users/pending');
+export const approveUser = (userId, approve) =>
+  request(`/admin/users/${userId}/approve?approve=${approve}`, { method: 'PUT' });
+export const getPendingUsers = () => request('/admin/users/pending');
 export const getBookingReport = (start, end) =>
   request(`/admin/reports/bookings?StartDate=${start}&EndDate=${end}`);
 export const getRevenueReport = (start, end) =>
