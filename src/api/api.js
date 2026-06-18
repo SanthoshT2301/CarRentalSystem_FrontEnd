@@ -23,6 +23,9 @@ async function request(path, options = {}) {
   return res.json();
 }
 
+
+
+
 // Auth
 export const login = (body) =>
   request('/authentication/login', { method: 'POST', body: JSON.stringify(body) });
@@ -63,6 +66,17 @@ export const cancelBooking = (id, userId, isAdmin = false) =>
 export const returnCar = (id, userId, isAdmin = false) =>
   request(`/reservations/${id}/return?userId=${userId}&isAdmin=${isAdmin}`, { method: 'PUT' });
 
+/**
+ * Extend a confirmed reservation's drop-off date (once only, daily bookings only).
+ * Body: { newDropoffDate: "yyyy-MM-dd" }
+ * Returns ExtendReservationDto: { reservationId, oldDropoffDate, newDropoffDate, extraCharge, newTotalAmount, message }
+ */
+export const extendReservation = (reservationId, userId, newDropoffDate) =>
+  request(`/reservations/${reservationId}/extend?userId=${userId}`, {
+    method: 'PUT',
+    body: JSON.stringify({ newDropoffDate }),
+  });
+
 // Reviews
 export const getAllReviews = (page = 1, pageSize = 10) =>
   request(`/reviews?page=${page}&pageSize=${pageSize}`);
@@ -96,7 +110,6 @@ export const getGateDetails = (reservationId) =>
 
 /**
  * Returns reservations for cars added by this agent.
- * Used so an agent only sees customers who booked their cars.
  */
 export const getAgentBookings = (agentId, page = 1, pageSize = 50) =>
   request(`/gate/agent-bookings/${agentId}?page=${page}&pageSize=${pageSize}`);

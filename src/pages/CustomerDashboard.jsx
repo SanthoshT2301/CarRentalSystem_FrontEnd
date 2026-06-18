@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getCars, getMyBookings, cancelBooking, addReview, getAllReviews } from '../api/api';
+import { getCars, getMyBookings, cancelBooking, addReview, getAllReviews, extendReservation } from '../api/api';
 import { useAuth } from '../context/AuthContext';
 
 const SIDEBAR_WIDTH = 170;
@@ -33,6 +33,13 @@ export default function CustomerDashboard() {
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewComment, setReviewComment] = useState('');
   const [reviewMsg, setReviewMsg] = useState('');
+
+  // Extend reservation state
+  const [extendModal, setExtendModal] = useState(null); // booking object
+  const [extendDate, setExtendDate] = useState('');
+  const [extendLoading, setExtendLoading] = useState(false);
+  const [extendResult, setExtendResult] = useState(null); // ExtendReservationDto on success
+  const [extendError, setExtendError] = useState('');
 
   // Toast
   const [toast, setToast] = useState('');
@@ -92,11 +99,50 @@ export default function CustomerDashboard() {
     } catch (e) { setReviewMsg(e.message); }
   }
 
+  // ── Extend logic ──────────────────────────────────────────────────────────
+  function openExtendModal(booking) {
+    // Default new date to 1 day after current drop-off
+    const currentDrop = new Date(booking.dropoffDate);
+    currentDrop.setDate(currentDrop.getDate() + 1);
+    const defaultDate = currentDrop.toISOString().split('T')[0];
+    setExtendDate(defaultDate);
+    setExtendError('');
+    setExtendResult(null);
+    setExtendModal(booking);
+  }
+
+  async function handleExtend() {
+    if (!extendDate) { setExtendError('Please select a new drop-off date.'); return; }
+    setExtendLoading(true);
+    setExtendError('');
+    setExtendResult(null);
+    try {
+      const result = await extendReservation(extendModal.id, userId, extendDate);
+      setExtendResult(result);
+      // Update the booking in local state
+      setBookings(prev => prev.map(b =>
+        b.id === extendModal.id
+          ? { ...b, dropoffDate: result.newDropoffDate, totalAmount: result.newTotalAmount, isExtended: true }
+          : b
+      ));
+    } catch (e) {
+      setExtendError(e.message);
+    } finally {
+      setExtendLoading(false);
+    }
+  }
+
+  function closeExtendModal() {
+    if (extendResult) showToast('Reservation extended successfully!');
+    setExtendModal(null);
+    setExtendResult(null);
+    setExtendError('');
+    setExtendDate('');
+  }
+
   const completedWithoutReview = bookings.filter(b =>
     b.status === 'completed' && !myReviews.some(r => r.reservationId === b.id)
   );
-
-  const STATUS = { confirmed: 'primary', completed: 'success', cancelled: 'danger' };
 
   const firstInitial = userName ? userName.charAt(0).toUpperCase() : 'U';
   const email = userName ? userName.toLowerCase().replace(' ', '.') + '@example.com' : '';
@@ -112,13 +158,10 @@ export default function CustomerDashboard() {
     <div style={{ display: 'flex', minHeight: '100vh', fontFamily: 'system-ui, sans-serif' }}>
       {/* Sidebar */}
       <div style={{ width: SIDEBAR_WIDTH, background: '#1a1a1a', color: '#fff', display: 'flex', flexDirection: 'column', position: 'fixed', top: 0, left: 0, bottom: 0, zIndex: 10 }}>
-        {/* Logo */}
         <div style={{ padding: '16px 14px', borderBottom: '1px solid #2a2a2a', display: 'flex', alignItems: 'center', gap: 8 }}>
           <div style={{ width: 28, height: 28, background: '#e85d24', borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14 }}>🚗</div>
           <span style={{ fontWeight: 700, fontSize: 12, letterSpacing: 1 }}>ROADREADY</span>
         </div>
-
-        {/* User */}
         <div style={{ padding: '16px 14px', borderBottom: '1px solid #2a2a2a' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <div style={{ width: 36, height: 36, background: '#e85d24', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 15, color: '#fff', flexShrink: 0 }}>{firstInitial}</div>
@@ -128,8 +171,6 @@ export default function CustomerDashboard() {
             </div>
           </div>
         </div>
-
-        {/* Nav */}
         <nav style={{ flex: 1, padding: '12px 8px' }}>
           {MENU.map(m => (
             <button key={m.key} onClick={() => setTab(m.key)} style={{
@@ -144,8 +185,6 @@ export default function CustomerDashboard() {
             </button>
           ))}
         </nav>
-
-        {/* Logout */}
         <div style={{ padding: '12px 8px', borderTop: '1px solid #2a2a2a' }}>
           <button onClick={() => { logout(); navigate('/'); }} style={{
             display: 'flex', alignItems: 'center', gap: 10, width: '100%',
@@ -232,7 +271,6 @@ export default function CustomerDashboard() {
 
               {/* Car grid */}
               <div style={{ flex: 1 }}>
-                {/* Search + count */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
                   <div style={{ flex: 1, position: 'relative' }}>
                     <span style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#aaa', fontSize: 15 }}>🔍</span>
@@ -279,9 +317,11 @@ export default function CustomerDashboard() {
                 </div>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                  {bookings.map((b, i) => {
+                  {bookings.map((b) => {
                     const d1 = new Date(b.pickupDate), d2 = new Date(b.dropoffDate);
                     const days = b.isHourly ? null : Math.max(1, Math.ceil((d2 - d1) / 86400000));
+                    // Can extend: confirmed, not hourly, not already extended
+                    const canExtend = b.status === 'confirmed' && !b.isHourly && !b.isExtended;
                     return (
                       <div key={b.id} style={{ background: '#fff', borderRadius: 14, padding: '20px 24px', boxShadow: '0 1px 4px rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center', gap: 18 }}>
                         <div style={{ width: 44, height: 44, background: '#fef3ee', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, flexShrink: 0 }}>🚗</div>
@@ -291,11 +331,14 @@ export default function CustomerDashboard() {
                           <div style={{ color: '#888', fontSize: 12, marginTop: 2 }}>
                             {b.pickupDate} — {b.isHourly ? `${b.durationHours}h` : `${b.dropoffDate} · ${days} day${days > 1 ? 's' : ''}`}
                           </div>
+                          {b.isExtended && (
+                            <div style={{ color: '#7c3aed', fontSize: 11, fontWeight: 600, marginTop: 3 }}>✦ Extended</div>
+                          )}
                         </div>
                         <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 8 }}>
                           <div style={{ fontWeight: 700, fontSize: 20, color: '#e85d24' }}>${b.totalAmount}</div>
                           <div style={{ fontSize: 11, color: '#aaa' }}>Booking R{String(b.id).padStart(3, '0')}</div>
-                          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                          <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
                             <span style={{
                               padding: '3px 12px', borderRadius: 20, fontSize: 12, fontWeight: 600,
                               background: b.status === 'completed' ? '#dcfce7' : b.status === 'cancelled' ? '#fee2e2' : '#dbeafe',
@@ -304,6 +347,11 @@ export default function CustomerDashboard() {
                             }}>{b.status}</span>
                             {b.status === 'confirmed' && (
                               <button onClick={() => handleCancel(b.id)} style={{ padding: '3px 12px', borderRadius: 20, border: '1.5px solid #fca5a5', color: '#dc2626', background: '#fff', fontSize: 12, cursor: 'pointer', fontWeight: 500 }}>Cancel</button>
+                            )}
+                            {canExtend && (
+                              <button onClick={() => openExtendModal(b)} style={{ padding: '3px 12px', borderRadius: 20, border: 'none', background: '#7c3aed', color: '#fff', fontSize: 12, cursor: 'pointer', fontWeight: 600 }}>
+                                Extend
+                              </button>
                             )}
                             {b.status === 'completed' && !myReviews.some(r => r.reservationId === b.id) && (
                               <button onClick={() => { setReviewModal(b); setReviewRating(5); setReviewComment(''); setReviewMsg(''); }}
@@ -398,6 +446,72 @@ export default function CustomerDashboard() {
           )}
         </div>
       </div>
+
+      {/* ─── EXTEND RESERVATION MODAL ─── */}
+      {extendModal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 999 }}>
+          <div style={{ background: '#fff', borderRadius: 20, padding: 36, width: 460, boxShadow: '0 20px 60px rgba(0,0,0,0.25)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+              <h3 style={{ fontWeight: 800, margin: 0, fontSize: 18 }}>Extend Reservation</h3>
+              <button onClick={closeExtendModal} style={{ background: 'none', border: 'none', fontSize: 22, cursor: 'pointer', color: '#aaa', lineHeight: 1 }}>×</button>
+            </div>
+
+            {!extendResult ? (
+              <>
+                {/* Info */}
+                <div style={{ background: '#f3e8ff', border: '1px solid #d8b4fe', borderRadius: 10, padding: '12px 16px', marginBottom: 20, fontSize: 13, color: '#6b21a8' }}>
+                  <div style={{ fontWeight: 600, marginBottom: 4 }}>Booking R{String(extendModal.id).padStart(3, '0')}</div>
+                  <div>Current drop-off: <strong>{extendModal.dropoffDate}</strong></div>
+                  <div style={{ marginTop: 4, fontSize: 12, color: '#7c3aed' }}>You can extend this reservation once. Extra days will be charged at the same daily rate.</div>
+                </div>
+
+                <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#444', marginBottom: 6 }}>New drop-off date</label>
+                <input
+                  type="date"
+                  value={extendDate}
+                  min={(() => { const d = new Date(extendModal.dropoffDate); d.setDate(d.getDate() + 1); return d.toISOString().split('T')[0]; })()}
+                  onChange={e => { setExtendDate(e.target.value); setExtendError(''); }}
+                  style={{ width: '100%', padding: '11px 14px', border: '1.5px solid #e0e0e0', borderRadius: 8, fontSize: 14, outline: 'none', boxSizing: 'border-box', marginBottom: 16 }}
+                />
+
+                {extendError && (
+                  <div style={{ background: '#fee2e2', border: '1px solid #fca5a5', borderRadius: 8, padding: '10px 14px', color: '#dc2626', fontSize: 13, marginBottom: 12 }}>
+                    {extendError}
+                  </div>
+                )}
+
+                <div style={{ display: 'flex', gap: 12 }}>
+                  <button onClick={closeExtendModal} style={{ flex: 1, padding: '12px', background: '#f5f5f5', border: 'none', borderRadius: 10, cursor: 'pointer', fontWeight: 500, fontSize: 14 }}>Cancel</button>
+                  <button onClick={handleExtend} disabled={extendLoading || !extendDate} style={{ flex: 1, padding: '12px', background: extendDate && !extendLoading ? '#7c3aed' : '#e0e0e0', color: extendDate && !extendLoading ? '#fff' : '#aaa', border: 'none', borderRadius: 10, cursor: extendDate && !extendLoading ? 'pointer' : 'not-allowed', fontWeight: 700, fontSize: 14 }}>
+                    {extendLoading ? 'Processing...' : 'Confirm Extension'}
+                  </button>
+                </div>
+              </>
+            ) : (
+              /* Success state */
+              <div style={{ textAlign: 'center' }}>
+                <div style={{ fontSize: 48, marginBottom: 16 }}>✅</div>
+                <div style={{ fontWeight: 700, fontSize: 18, marginBottom: 8, color: '#16a34a' }}>Extension Confirmed!</div>
+                <p style={{ color: '#555', fontSize: 14, lineHeight: 1.6, marginBottom: 20 }}>{extendResult.message}</p>
+                <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 12, padding: '16px 20px', marginBottom: 20, textAlign: 'left' }}>
+                  {[
+                    ['Old drop-off', extendResult.oldDropoffDate],
+                    ['New drop-off', extendResult.newDropoffDate],
+                    ['Extra charge', `$${extendResult.extraCharge}`],
+                    ['New total', `$${extendResult.newTotalAmount}`],
+                  ].map(([k, v]) => (
+                    <div key={k} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8, fontSize: 13 }}>
+                      <span style={{ color: '#666' }}>{k}</span>
+                      <span style={{ fontWeight: 600, color: '#111' }}>{v}</span>
+                    </div>
+                  ))}
+                </div>
+                <button onClick={closeExtendModal} style={{ width: '100%', padding: '12px', background: '#16a34a', color: '#fff', border: 'none', borderRadius: 10, cursor: 'pointer', fontWeight: 700, fontSize: 14 }}>Done</button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Review modal */}
       {reviewModal && (
