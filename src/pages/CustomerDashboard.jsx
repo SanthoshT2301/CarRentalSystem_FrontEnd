@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getCars, getMyBookings, cancelBooking, addReview, getAllReviews, extendReservation } from '../api/api';
 import { useAuth } from '../context/AuthContext';
@@ -35,10 +35,11 @@ export default function CustomerDashboard() {
   const [reviewMsg, setReviewMsg] = useState('');
 
   // Extend reservation state
-  const [extendModal, setExtendModal] = useState(null); // booking object
+  const [extendModal, setExtendModal] = useState(null);
   const [extendDate, setExtendDate] = useState('');
+  const [extendHours, setExtendHours] = useState(1);   // ← NEW: for hourly extension
   const [extendLoading, setExtendLoading] = useState(false);
-  const [extendResult, setExtendResult] = useState(null); // ExtendReservationDto on success
+  const [extendResult, setExtendResult] = useState(null);
   const [extendError, setExtendError] = useState('');
 
   // Toast
@@ -101,25 +102,37 @@ export default function CustomerDashboard() {
 
   // ── Extend logic ──────────────────────────────────────────────────────────
   function openExtendModal(booking) {
-    // Default new date to 1 day after current drop-off
-    const currentDrop = new Date(booking.dropoffDate);
-    currentDrop.setDate(currentDrop.getDate() + 1);
-    const defaultDate = currentDrop.toISOString().split('T')[0];
-    setExtendDate(defaultDate);
+    if (booking.isHourly) {
+      setExtendDate('');
+      setExtendHours(1);
+    } else {
+      const currentDrop = new Date(booking.dropoffDate);
+      currentDrop.setDate(currentDrop.getDate() + 1);
+      setExtendDate(currentDrop.toISOString().split('T')[0]);
+      setExtendHours(0);
+    }
     setExtendError('');
     setExtendResult(null);
     setExtendModal(booking);
   }
 
   async function handleExtend() {
-    if (!extendDate) { setExtendError('Please select a new drop-off date.'); return; }
+    if (extendModal.isHourly) {
+      if (!extendHours || extendHours < 1) { setExtendError('Please enter at least 1 hour.'); return; }
+    } else {
+      if (!extendDate) { setExtendError('Please select a new drop-off date.'); return; }
+    }
     setExtendLoading(true);
     setExtendError('');
     setExtendResult(null);
     try {
-      const result = await extendReservation(extendModal.id, userId, extendDate);
+      const result = await extendReservation(
+        extendModal.id,
+        userId,
+        extendModal.isHourly ? null : extendDate,
+        extendModal.isHourly ? parseInt(extendHours) : null
+      );
       setExtendResult(result);
-      // Update the booking in local state
       setBookings(prev => prev.map(b =>
         b.id === extendModal.id
           ? { ...b, dropoffDate: result.newDropoffDate, totalAmount: result.newTotalAmount, isExtended: true }
@@ -138,6 +151,7 @@ export default function CustomerDashboard() {
     setExtendResult(null);
     setExtendError('');
     setExtendDate('');
+    setExtendHours(1);
   }
 
   const completedWithoutReview = bookings.filter(b =>
@@ -320,8 +334,8 @@ export default function CustomerDashboard() {
                   {bookings.map((b) => {
                     const d1 = new Date(b.pickupDate), d2 = new Date(b.dropoffDate);
                     const days = b.isHourly ? null : Math.max(1, Math.ceil((d2 - d1) / 86400000));
-                    // Can extend: confirmed, not hourly, not already extended
-                    const canExtend = b.status === 'confirmed' && !b.isHourly && !b.isExtended;
+                    // ← FIXED: hourly bookings can now be extended too
+                    const canExtend = b.status === 'confirmed' && !b.isExtended;
                     return (
                       <div key={b.id} style={{ background: '#fff', borderRadius: 14, padding: '20px 24px', boxShadow: '0 1px 4px rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center', gap: 18 }}>
                         <div style={{ width: 44, height: 44, background: '#fef3ee', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, flexShrink: 0 }}>🚗</div>
@@ -350,7 +364,7 @@ export default function CustomerDashboard() {
                             )}
                             {canExtend && (
                               <button onClick={() => openExtendModal(b)} style={{ padding: '3px 12px', borderRadius: 20, border: 'none', background: '#7c3aed', color: '#fff', fontSize: 12, cursor: 'pointer', fontWeight: 600 }}>
-                                Extend
+                                {b.isHourly ? '+ Hours' : 'Extend'}
                               </button>
                             )}
                             {b.status === 'completed' && !myReviews.some(r => r.reservationId === b.id) && (
@@ -452,27 +466,73 @@ export default function CustomerDashboard() {
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 999 }}>
           <div style={{ background: '#fff', borderRadius: 20, padding: 36, width: 460, boxShadow: '0 20px 60px rgba(0,0,0,0.25)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-              <h3 style={{ fontWeight: 800, margin: 0, fontSize: 18 }}>Extend Reservation</h3>
+              <h3 style={{ fontWeight: 800, margin: 0, fontSize: 18 }}>
+                {extendModal.isHourly ? 'Add More Hours' : 'Extend Reservation'}
+              </h3>
               <button onClick={closeExtendModal} style={{ background: 'none', border: 'none', fontSize: 22, cursor: 'pointer', color: '#aaa', lineHeight: 1 }}>×</button>
             </div>
 
             {!extendResult ? (
               <>
-                {/* Info */}
-                <div style={{ background: '#f3e8ff', border: '1px solid #d8b4fe', borderRadius: 10, padding: '12px 16px', marginBottom: 20, fontSize: 13, color: '#6b21a8' }}>
-                  <div style={{ fontWeight: 600, marginBottom: 4 }}>Booking R{String(extendModal.id).padStart(3, '0')}</div>
-                  <div>Current drop-off: <strong>{extendModal.dropoffDate}</strong></div>
-                  <div style={{ marginTop: 4, fontSize: 12, color: '#7c3aed' }}>You can extend this reservation once. Extra days will be charged at the same daily rate.</div>
+                {/* Info banner — colour-coded by booking type */}
+                <div style={{
+                  background: extendModal.isHourly ? '#fef3c7' : '#f3e8ff',
+                  border: `1px solid ${extendModal.isHourly ? '#fcd34d' : '#d8b4fe'}`,
+                  borderRadius: 10, padding: '12px 16px', marginBottom: 20,
+                  fontSize: 13, color: extendModal.isHourly ? '#92400e' : '#6b21a8',
+                }}>
+                  <div style={{ fontWeight: 600, marginBottom: 4 }}>
+                    Booking R{String(extendModal.id).padStart(3, '0')} ·{' '}
+                    <span style={{ background: extendModal.isHourly ? '#fcd34d' : '#d8b4fe', borderRadius: 20, padding: '1px 8px', fontSize: 11 }}>
+                      {extendModal.isHourly ? 'Hourly' : 'Daily'}
+                    </span>
+                  </div>
+                  {extendModal.isHourly ? (
+                    <div>Current end time: <strong>{extendModal.dropoffDate}</strong></div>
+                  ) : (
+                    <div>Current drop-off: <strong>{extendModal.dropoffDate}</strong></div>
+                  )}
+                  <div style={{ marginTop: 6, fontSize: 12, color: extendModal.isHourly ? '#b45309' : '#7c3aed' }}>
+                    {extendModal.isHourly
+                      ? 'Maximum 24 hours total duration. Billed at the same hourly rate.'
+                      : 'One extension allowed. Extra days billed at the same daily rate.'}
+                  </div>
                 </div>
 
-                <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#444', marginBottom: 6 }}>New drop-off date</label>
-                <input
-                  type="date"
-                  value={extendDate}
-                  min={(() => { const d = new Date(extendModal.dropoffDate); d.setDate(d.getDate() + 1); return d.toISOString().split('T')[0]; })()}
-                  onChange={e => { setExtendDate(e.target.value); setExtendError(''); }}
-                  style={{ width: '100%', padding: '11px 14px', border: '1.5px solid #e0e0e0', borderRadius: 8, fontSize: 14, outline: 'none', boxSizing: 'border-box', marginBottom: 16 }}
-                />
+                {/* ── HOURLY: number-of-hours input ── */}
+                {extendModal.isHourly ? (
+                  <>
+                    <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#444', marginBottom: 6 }}>
+                      Additional hours
+                    </label>
+                    <input
+                      type="number"
+                      min={1}
+                      max={24}
+                      value={extendHours}
+                      onChange={e => { setExtendHours(e.target.value); setExtendError(''); }}
+                      style={{ width: '100%', padding: '11px 14px', border: '1.5px solid #e0e0e0', borderRadius: 8, fontSize: 14, outline: 'none', boxSizing: 'border-box', marginBottom: 16 }}
+                    />
+                  </>
+                ) : (
+                  /* ── DAILY: date picker ── */
+                  <>
+                    <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#444', marginBottom: 6 }}>
+                      New drop-off date
+                    </label>
+                    <input
+                      type="date"
+                      value={extendDate}
+                      min={(() => {
+                        const d = new Date(extendModal.dropoffDate);
+                        d.setDate(d.getDate() + 1);
+                        return d.toISOString().split('T')[0];
+                      })()}
+                      onChange={e => { setExtendDate(e.target.value); setExtendError(''); }}
+                      style={{ width: '100%', padding: '11px 14px', border: '1.5px solid #e0e0e0', borderRadius: 8, fontSize: 14, outline: 'none', boxSizing: 'border-box', marginBottom: 16 }}
+                    />
+                  </>
+                )}
 
                 {extendError && (
                   <div style={{ background: '#fee2e2', border: '1px solid #fca5a5', borderRadius: 8, padding: '10px 14px', color: '#dc2626', fontSize: 13, marginBottom: 12 }}>
@@ -481,24 +541,34 @@ export default function CustomerDashboard() {
                 )}
 
                 <div style={{ display: 'flex', gap: 12 }}>
-                  <button onClick={closeExtendModal} style={{ flex: 1, padding: '12px', background: '#f5f5f5', border: 'none', borderRadius: 10, cursor: 'pointer', fontWeight: 500, fontSize: 14 }}>Cancel</button>
-                  <button onClick={handleExtend} disabled={extendLoading || !extendDate} style={{ flex: 1, padding: '12px', background: extendDate && !extendLoading ? '#7c3aed' : '#e0e0e0', color: extendDate && !extendLoading ? '#fff' : '#aaa', border: 'none', borderRadius: 10, cursor: extendDate && !extendLoading ? 'pointer' : 'not-allowed', fontWeight: 700, fontSize: 14 }}>
+                  <button onClick={closeExtendModal} style={{ flex: 1, padding: '12px', background: '#f5f5f5', border: 'none', borderRadius: 10, cursor: 'pointer', fontWeight: 500, fontSize: 14 }}>
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleExtend}
+                    disabled={extendLoading || (extendModal.isHourly ? !extendHours || extendHours < 1 : !extendDate)}
+                    style={{
+                      flex: 1, padding: '12px', border: 'none', borderRadius: 10, fontWeight: 700, fontSize: 14,
+                      cursor: extendLoading || (extendModal.isHourly ? !extendHours || extendHours < 1 : !extendDate) ? 'not-allowed' : 'pointer',
+                      background: extendLoading || (extendModal.isHourly ? !extendHours || extendHours < 1 : !extendDate) ? '#e0e0e0' : '#7c3aed',
+                      color: extendLoading || (extendModal.isHourly ? !extendHours || extendHours < 1 : !extendDate) ? '#aaa' : '#fff',
+                    }}>
                     {extendLoading ? 'Processing...' : 'Confirm Extension'}
                   </button>
                 </div>
               </>
             ) : (
-              /* Success state */
+              /* ── Success state ── */
               <div style={{ textAlign: 'center' }}>
                 <div style={{ fontSize: 48, marginBottom: 16 }}>✅</div>
                 <div style={{ fontWeight: 700, fontSize: 18, marginBottom: 8, color: '#16a34a' }}>Extension Confirmed!</div>
                 <p style={{ color: '#555', fontSize: 14, lineHeight: 1.6, marginBottom: 20 }}>{extendResult.message}</p>
                 <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 12, padding: '16px 20px', marginBottom: 20, textAlign: 'left' }}>
                   {[
-                    ['Old drop-off', extendResult.oldDropoffDate],
-                    ['New drop-off', extendResult.newDropoffDate],
+                    [extendModal.isHourly ? 'Old end time' : 'Old drop-off', extendResult.oldDropoffDate],
+                    [extendModal.isHourly ? 'New end time' : 'New drop-off', extendResult.newDropoffDate],
                     ['Extra charge', `$${extendResult.extraCharge}`],
-                    ['New total', `$${extendResult.newTotalAmount}`],
+                    ['New total',    `$${extendResult.newTotalAmount}`],
                   ].map(([k, v]) => (
                     <div key={k} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8, fontSize: 13 }}>
                       <span style={{ color: '#666' }}>{k}</span>
@@ -506,7 +576,9 @@ export default function CustomerDashboard() {
                     </div>
                   ))}
                 </div>
-                <button onClick={closeExtendModal} style={{ width: '100%', padding: '12px', background: '#16a34a', color: '#fff', border: 'none', borderRadius: 10, cursor: 'pointer', fontWeight: 700, fontSize: 14 }}>Done</button>
+                <button onClick={closeExtendModal} style={{ width: '100%', padding: '12px', background: '#16a34a', color: '#fff', border: 'none', borderRadius: 10, cursor: 'pointer', fontWeight: 700, fontSize: 14 }}>
+                  Done
+                </button>
               </div>
             )}
           </div>

@@ -71,10 +71,13 @@ export const returnCar = (id, userId, isAdmin = false) =>
  * Body: { newDropoffDate: "yyyy-MM-dd" }
  * Returns ExtendReservationDto: { reservationId, oldDropoffDate, newDropoffDate, extraCharge, newTotalAmount, message }
  */
-export const extendReservation = (reservationId, userId, newDropoffDate) =>
+export const extendReservation = (reservationId, userId, newDropoffDate, additionalHours) =>
   request(`/reservations/${reservationId}/extend?userId=${userId}`, {
     method: 'PUT',
-    body: JSON.stringify({ newDropoffDate }),
+    body: JSON.stringify({
+      newDropoffDate: newDropoffDate || null,
+      additionalHours: additionalHours || null,
+    }),
   });
 
 // Reviews
