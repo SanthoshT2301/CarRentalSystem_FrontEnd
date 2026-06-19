@@ -6,6 +6,19 @@ import {
   gateCheckout, gateCheckin,
 } from '../api/api';
 import { useAuth } from '../context/AuthContext';
+import '../styles/agent-dashboard.css';
+
+import AgentSidebar from '../components/agent-dashboard/AgentSidebar';
+import AgentTopbar from '../components/agent-dashboard/AgentTopbar';
+import MyBookingsTab from '../components/agent-dashboard/MyBookingsTab';
+import GateLogisticsTab from '../components/agent-dashboard/GateLogisticsTab';
+import FleetManagementTab from '../components/agent-dashboard/FleetManagementTab';
+import MaintenanceTab from '../components/agent-dashboard/MaintenanceTab';
+import CarFormModal from '../components/agent-dashboard/CarFormModal';
+import EditCarModal from '../components/agent-dashboard/EditCarModal';
+import GateModal from '../components/agent-dashboard/GateModal';
+import MaintenanceModal from '../components/agent-dashboard/MaintenanceModal';
+import Toast from '../components/agent-dashboard/Toast';
 
 // ── shared micro-style tokens ──────────────────────────────────────────────
 const S = {
@@ -228,515 +241,105 @@ export default function AgentDashboard() {
   // Gate ops only makes sense for confirmed bookings
   const confirmedBookings = bookings.filter(b => b.status === 'confirmed');
 
-  const MENU = [
-    { key: 'bookings',    icon: '📋', label: 'My Bookings' },
-    { key: 'gate',        icon: '🚧', label: 'Gate Logistics' },
-    { key: 'fleet',       icon: '🚗', label: 'My Fleet' },
-    { key: 'maintenance', icon: '🔧', label: 'Maintenance' },
-  ];
-
-  return (
-    <div style={{ display: 'flex', minHeight: '100vh', fontFamily: 'system-ui, sans-serif' }}>
-
-      {/* ── Sidebar ── */}
-      <div style={{ width: 220, background: '#111', display: 'flex', flexDirection: 'column', padding: '0' }}>
-        <div style={{ padding: '16px 14px', borderBottom: '1px solid #222', display: 'flex', alignItems: 'center', gap: 8 }}>
-          <div style={{ width: 28, height: 28, background: '#e85d24', borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14 }}>🚗</div>
-          <span style={{ color: '#fff', fontWeight: 700, fontSize: 12, letterSpacing: 1 }}>ROADREADY</span>
-        </div>
-        <div style={{ padding: '16px 14px', borderBottom: '1px solid #222' }}>
-          <div style={{ width: 38, height: 38, background: '#2563eb', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 16, color: '#fff', marginBottom: 8 }}>
-            {(userName || 'A').charAt(0).toUpperCase()}
-          </div>
-          <div style={{ color: '#fff', fontWeight: 600, fontSize: 13 }}>{userName}</div>
-          <div style={{ color: '#2563eb', fontSize: 11, fontWeight: 600 }}>Agent</div>
-        </div>
-        <nav style={{ flex: 1, padding: '12px 8px' }}>
-          {MENU.map(m => (
-            <button key={m.key} onClick={() => setTab(m.key)} style={{
-              display: 'flex', alignItems: 'center', gap: 10, width: '100%',
-              padding: '10px 12px', borderRadius: 8, border: 'none', cursor: 'pointer',
-              background: tab === m.key ? '#e85d2430' : 'transparent',
-              color: tab === m.key ? '#e85d24' : '#aaa',
-              fontWeight: tab === m.key ? 600 : 400, fontSize: 13, textAlign: 'left', marginBottom: 2,
-            }}>
-              <span style={{ fontSize: 15 }}>{m.icon}</span> {m.label}
-            </button>
-          ))}
-        </nav>
-        <div style={{ padding: '12px 8px', borderTop: '1px solid #222' }}>
-          <button onClick={() => { logout(); navigate('/'); }} style={{
-            display: 'flex', alignItems: 'center', gap: 10, width: '100%',
-            padding: '10px 12px', borderRadius: 8, border: 'none', cursor: 'pointer',
-            background: 'transparent', color: '#e85d24', fontSize: 13,
-          }}>🚪 Logout</button>
-        </div>
-      </div>
-
-      {/* ── Main ── */}
-      <div style={{ flex: 1, background: '#f1f0ea', minHeight: '100vh' }}>
-
-        {/* Topbar */}
-        <div style={{ background: '#fff', borderBottom: '1px solid #e8e8e8', padding: '14px 32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'sticky', top: 0, zIndex: 10 }}>
-          <div>
-            <div style={{ fontWeight: 700, fontSize: 18 }}>{MENU.find(m => m.key === tab)?.label}</div>
-            <div style={{ color: '#888', fontSize: 13 }}>Welcome back, {userName}</div>
-          </div>
-          <div style={{ display: 'flex', gap: 12 }}>
-            <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 8, padding: '6px 14px', fontSize: 12, color: '#2563eb', fontWeight: 600 }}>
-              {myCars.length} cars in your fleet
-            </div>
-            <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 8, padding: '6px 14px', fontSize: 12, color: '#16a34a', fontWeight: 600 }}>
-              {bookings.length} booking{bookings.length !== 1 ? 's' : ''} total
-            </div>
-          </div>
-        </div>
-
-        <div style={{ padding: '28px 32px' }}>
-
-          {/* ══════════ MY BOOKINGS (scoped to agent's cars) ══════════ */}
-          {tab === 'bookings' && (
-            <div>
-              <div style={{ marginBottom: 20, background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 12, padding: '14px 18px', fontSize: 13, color: '#1e40af', display: 'flex', gap: 10 }}>
-                <span>ℹ️</span>
-                <span>You can only see customers who booked <strong>your cars</strong>. Cars added by other agents or admins are not shown here.</span>
-              </div>
-
-              <div style={{ ...S.card, overflow: 'hidden' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                  <thead>
-                    <tr>
-                      {['Booking ID', 'Car ID', 'Pickup', 'Drop-off', 'Dates', 'Amount', 'Status', 'Actions'].map(h => (
-                        <th key={h} style={S.th}>{h}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {bookings.map(b => (
-                      <tr key={b.id}>
-                        <td style={S.td}>#{b.id}</td>
-                        <td style={S.td}>Car #{b.carId}</td>
-                        <td style={S.td}>{b.pickupLocation}</td>
-                        <td style={S.td}>{b.dropoffLocation}</td>
-                        <td style={S.td}>{b.pickupDate} → {b.dropoffDate}</td>
-                        <td style={{ ...S.td, fontWeight: 600, color: '#e85d24' }}>${b.totalAmount}</td>
-                        <td style={S.td}>
-                          <span style={{
-                            padding: '3px 10px', borderRadius: 20, fontSize: 11, fontWeight: 600,
-                            textTransform: 'capitalize',
-                            background: `${STATUS_CLR[b.status] || '#888'}20`,
-                            color: STATUS_CLR[b.status] || '#888',
-                          }}>{b.status}</span>
-                        </td>
-                        <td style={S.td}>
-                          {b.status === 'confirmed' && (
-                            <button onClick={() => doReturn(b.id)} style={actionBtn('#dc2626', '#fca5a5')}>Return</button>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                    {bookings.length === 0 && (
-                      <tr><td colSpan={8} style={{ padding: 48, textAlign: 'center', color: '#aaa' }}>
-                        No bookings for your cars yet.
-                      </td></tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
-
-          {/* ══════════ GATE LOGISTICS (confirmed bookings of agent's cars) ══════════ */}
-          {tab === 'gate' && (
-            <div>
-              <div style={{ marginBottom: 20, background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 12, padding: '14px 18px', fontSize: 13, color: '#1e40af', display: 'flex', gap: 10 }}>
-                <span>ℹ️</span>
-                <span>Gate logistics is limited to <strong>confirmed</strong> bookings for your cars. Completed or cancelled bookings are handled automatically.</span>
-              </div>
-
-              <div style={{ ...S.card, overflow: 'hidden' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                  <thead>
-                    <tr>
-                      {['Booking ID', 'Car ID', 'Pickup Location', 'Status', 'Checkout', 'Check-in'].map(h => (
-                        <th key={h} style={S.th}>{h}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {confirmedBookings.map(b => (
-                      <tr key={b.id}>
-                        <td style={S.td}>#{b.id}</td>
-                        <td style={S.td}>Car #{b.carId}</td>
-                        <td style={S.td}>{b.pickupLocation}</td>
-                        <td style={S.td}>
-                          <span style={{ background: '#eff6ff', color: '#2563eb', fontSize: 11, padding: '3px 10px', borderRadius: 20, fontWeight: 600 }}>
-                            Confirmed
-                          </span>
-                        </td>
-                        <td style={S.td}>
-                          <button
-                            onClick={() => { setGateModal({ type: 'checkout', reservationId: b.id }); setGateForm({}); }}
-                            style={actionBtn('#d97706', '#fde68a')}>
-                            Checkout →
-                          </button>
-                        </td>
-                        <td style={S.td}>
-                          <button
-                            onClick={() => { setGateModal({ type: 'checkin', reservationId: b.id }); setGateForm({}); }}
-                            style={actionBtn('#16a34a', '#bbf7d0')}>
-                            Check-in →
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                    {confirmedBookings.length === 0 && (
-                      <tr><td colSpan={6} style={{ padding: 48, textAlign: 'center', color: '#aaa' }}>
-                        No confirmed bookings pending gate operations.
-                      </td></tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
-
-          {/* ══════════ MY FLEET (cars added by this agent) ══════════ */}
-          {tab === 'fleet' && (
-            <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-                <div>
-                  <div style={{ fontWeight: 700, fontSize: 22 }}>My Fleet</div>
-                  <div style={{ color: '#888', fontSize: 13, marginTop: 2 }}>Cars you've added to the system</div>
-                </div>
-                <button
-                  onClick={() => { setCarModal(true); setCarForm(CAR_FORM_DEFAULTS); setCarFormErr(''); }}
-                  className="btn btn-warning fw-bold text-white"
-                  style={{ background: '#e85d24', border: 'none' }}>
-                  + Add Car
-                </button>
-              </div>
-
-              {/* Car form */}
-              {carModal && (
-                <div style={{ ...S.card, padding: 28, marginBottom: 24 }}>
-                  <div style={{ fontWeight: 700, fontSize: 16, marginBottom: 20 }}>Add New Car to Your Fleet</div>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14 }}>
-                    {[
-                      ['make',         'Make (Brand)',  'text'],
-                      ['model',        'Model',         'text'],
-                      ['year',         'Year',          'number'],
-                      ['pricePerDay',  'Price/Day ($)', 'number'],
-                      ['pricePerHour', 'Price/Hour ($)','number'],
-                      ['noSeats',      'Seats',         'number'],
-                      ['color',        'Color',         'text'],
-                      ['mileage',      'Mileage',       'text'],
-                    ].map(([k, l, t]) => (
-                      <div key={k}>
-                        <label style={S.lbl}>{l}</label>
-                        <input
-                          value={carForm[k]}
-                          onChange={e => setCarForm(f => ({ ...f, [k]: e.target.value }))}
-                          type={t} style={S.inp} placeholder={l}
-                        />
-                      </div>
-                    ))}
-
-                    {/* selects */}
-                    <div>
-                      <label style={S.lbl}>Type</label>
-                      <select value={carForm.type} onChange={e => setCarForm(f => ({ ...f, type: e.target.value }))} style={S.inp}>
-                        {['Sedan', 'SUV', 'Luxury', 'Compact', 'Hatchback'].map(t => <option key={t}>{t}</option>)}
-                      </select>
-                    </div>
-                    <div>
-                      <label style={S.lbl}>Location</label>
-                      <select value={carForm.location} onChange={e => setCarForm(f => ({ ...f, location: e.target.value }))} style={S.inp}>
-                        {['San Francisco', 'New York', 'Denver', 'Los Angeles'].map(l => <option key={l}>{l}</option>)}
-                      </select>
-                    </div>
-                    <div>
-                      <label style={S.lbl}>Transmission</label>
-                      <select value={carForm.transmission} onChange={e => setCarForm(f => ({ ...f, transmission: e.target.value }))} style={S.inp}>
-                        {['Automatic', 'Manual'].map(t => <option key={t}>{t}</option>)}
-                      </select>
-                    </div>
-
-                    <div style={{ gridColumn: '1/-1' }}>
-                      <label style={S.lbl}>Image URL</label>
-                      <input value={carForm.image} onChange={e => setCarForm(f => ({ ...f, image: e.target.value }))} style={S.inp} placeholder="https://..." />
-                    </div>
-                  </div>
-
-                  {carFormErr && <p style={{ color: '#dc2626', fontSize: 13, marginTop: 10 }}>{carFormErr}</p>}
-
-                  <div style={{ display: 'flex', gap: 12, marginTop: 20 }}>
-                    <button onClick={() => { setCarModal(false); setCarFormErr(''); }} className="btn btn-light fw-medium">Cancel</button>
-                    <button onClick={handleCreateCar} className="btn btn-warning fw-bold text-white" style={{ background: '#e85d24', border: 'none' }}>Add Car</button>
-                  </div>
-                </div>
-              )}
-
-              {/* Car grid */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 18 }}>
-                {myCars.map(car => (
-                  <div key={car.id} style={{ ...S.card, overflow: 'hidden' }}>
-                    <div style={{ position: 'relative', height: 150 }}>
-                      <img
-                        src={car.image}
-                        alt={car.make}
-                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                        onError={e => { e.target.src = 'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?auto=format&fit=crop&q=80&w=600'; }}
-                      />
-                      <span style={{
-                        position: 'absolute', top: 10, left: 10,
-                        background: car.available ? '#16a34a' : '#dc2626',
-                        color: '#fff', fontSize: 11, fontWeight: 600,
-                        padding: '3px 10px', borderRadius: 20,
-                      }}>
-                        {car.available ? 'Available' : 'Unavailable'}
-                      </span>
-                    </div>
-                    <div style={{ padding: '14px 16px' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                        <div style={{ fontWeight: 700 }}>{car.make} {car.model}</div>
-                        <div style={{ color: '#e85d24', fontWeight: 700 }}>${car.pricePerDay}/day</div>
-                      </div>
-                      <div style={{ color: '#888', fontSize: 12, marginBottom: 12 }}>
-                        {car.type} · {car.location} · {car.year}
-                      </div>
-
-                      {/* Bookings count for this car */}
-                      <div style={{ background: '#f0fdf4', borderRadius: 8, padding: '6px 10px', fontSize: 12, color: '#16a34a', fontWeight: 500, marginBottom: 10 }}>
-                        📋 {bookings.filter(b => b.carId === car.id).length} booking{bookings.filter(b => b.carId === car.id).length !== 1 ? 's' : ''} on this car
-                      </div>
-
-                      {/* Edit + Maintenance actions */}
-                      <div className="d-flex gap-2 mb-2">
-                        <button
-                          onClick={() => openEditModal(car)}
-                          className="btn btn-sm btn-outline-primary w-50">
-                          ✏ Edit
-                        </button>
-                        <button
-                          onClick={() => handlePutInMaintenance(car)}
-                          disabled={!car.available}
-                          className="btn btn-sm btn-outline-warning w-50">
-                          🛠 {car.available ? 'Maintenance' : 'In Maintenance'}
-                        </button>
-                      </div>
-
-                      <button
-                        onClick={() => handleDeleteCar(car.id)}
-                        className="btn btn-sm btn-outline-danger w-100">
-                        🗑 Remove from Fleet
-                      </button>
-                    </div>
-                  </div>
-                ))}
-                {myCars.length === 0 && (
-                  <div style={{ gridColumn: '1/-1', textAlign: 'center', padding: 60, color: '#aaa' }}>
-                    <div style={{ fontSize: 40, marginBottom: 12 }}>🚗</div>
-                    <div>You haven't added any cars yet.</div>
-                    <button onClick={() => { setCarModal(true); setCarFormErr(''); }} className="btn btn-warning fw-bold text-white mt-3" style={{ background: '#e85d24', border: 'none' }}>
-                      Add Your First Car
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* ══════════ MAINTENANCE ══════════ */}
-          {tab === 'maintenance' && (
-            <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-                <div style={{ fontWeight: 700, fontSize: 22 }}>Maintenance Alerts</div>
-                <button onClick={() => setMaintModal(true)} className="btn btn-warning fw-bold text-white" style={{ background: '#e85d24', border: 'none' }}>
-                  + Report Alert
-                </button>
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                {alerts.map(a => (
-                  <div key={a.maintenanceAlertId} style={{ ...S.card, padding: 20, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div>
-                      <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 6 }}>
-                        <p style={{ fontWeight: 700, margin: 0 }}>{a.carName}</p>
-                        <span style={{
-                          background: `${PRIORITY_CLR[a.priority] || '#888'}20`,
-                          color: PRIORITY_CLR[a.priority] || '#888',
-                          fontSize: 11, padding: '2px 8px', borderRadius: 20, fontWeight: 600,
-                        }}>{a.priority}</span>
-                      </div>
-                      <p style={{ color: '#666', fontSize: 13, margin: '0 0 4px' }}>{a.description}</p>
-                      <p style={{ color: '#aaa', fontSize: 12, margin: 0 }}>
-                        Reported by {a.reportedBy} · {new Date(a.createdAt).toLocaleDateString()}
-                      </p>
-                    </div>
-                    <div className="d-flex align-items-center gap-2">
-                      <span
-                        className={`badge ${
-                          a.status === 'Fixed' ? 'bg-success'
-                          : a.status === 'In Progress' ? 'bg-warning text-dark'
-                          : 'bg-secondary'
-                        }`}>
-                        {a.status}
-                      </span>
-                      {a.status !== 'Fixed' && (
-                        <select
-                          onChange={e => changeStatus(a.maintenanceAlertId, e.target.value)}
-                          defaultValue=""
-                          className="form-select form-select-sm w-auto">
-                          <option value="" disabled>Update</option>
-                          {['In Progress', 'Fixed'].map(s => <option key={s}>{s}</option>)}
-                        </select>
-                      )}
-                    </div>
-                  </div>
-                ))}
-                {alerts.length === 0 && (
-                  <div style={{ textAlign: 'center', padding: 60, color: '#aaa' }}>No maintenance alerts.</div>
-                )}
-              </div>
-            </div>
-          )}
-
-        </div>
-      </div>
-
-      {/* ── Gate modal ── */}
-      {gateModal && (
-        <Modal title={`${gateModal.type === 'checkout' ? 'Gate Checkout' : 'Gate Check-in'} — Booking #${gateModal.reservationId}`}
-          onClose={() => setGateModal(null)}>
-          {gateModal.type === 'checkout' ? (
-            <>
-              {[['driverLicense', "Driver's license", 'text'], ['mileageOut', 'Mileage out', 'number'], ['fuelOut', 'Fuel level out (%)', 'number']].map(([k, l, t]) => (
-                <div key={k} style={{ marginBottom: 12 }}>
-                  <label style={S.lbl}>{l}</label>
-                  <input value={gateForm[k] || ''} onChange={e => setGateForm(f => ({ ...f, [k]: e.target.value }))} style={S.inp} placeholder={l} type={t} />
-                </div>
-              ))}
-            </>
-          ) : (
-            <>
-              {[['mileageIn', 'Mileage in', 'number'], ['fuelIn', 'Fuel level in (%)', 'number']].map(([k, l, t]) => (
-                <div key={k} style={{ marginBottom: 12 }}>
-                  <label style={S.lbl}>{l}</label>
-                  <input value={gateForm[k] || ''} onChange={e => setGateForm(f => ({ ...f, [k]: e.target.value }))} style={S.inp} placeholder={l} type={t} />
-                </div>
-              ))}
-              <label style={S.lbl}>Damages (or type "none")</label>
-              <input value={gateForm.damages || ''} onChange={e => setGateForm(f => ({ ...f, damages: e.target.value }))} style={S.inp} placeholder="Describe any damages..." />
-            </>
-          )}
-          <div style={{ display: 'flex', gap: 12, marginTop: 20 }}>
-            <button onClick={() => setGateModal(null)} className="btn btn-light flex-fill">Cancel</button>
-            <button onClick={doGate} className="btn btn-warning fw-bold text-white flex-fill" style={{ background: '#e85d24', border: 'none' }}>Confirm</button>
-          </div>
-        </Modal>
-      )}
-
-      {/* ── Maintenance (report) modal ── */}
-      {maintModal && (
-        <Modal title="Report Maintenance Alert" onClose={() => setMaintModal(false)}>
-          {[['carId', 'Car ID', 'number'], ['description', 'Description', 'text']].map(([k, l, t]) => (
-            <div key={k} style={{ marginBottom: 12 }}>
-              <label style={S.lbl}>{l}</label>
-              <input value={maintForm[k]} onChange={e => setMaintForm(f => ({ ...f, [k]: e.target.value }))} style={S.inp} placeholder={l} type={t} />
-            </div>
-          ))}
-          <label style={S.lbl}>Priority</label>
-          <select value={maintForm.priority} onChange={e => setMaintForm(f => ({ ...f, priority: e.target.value }))} className="form-select mb-3">
-            {['Low', 'Medium', 'High'].map(p => <option key={p}>{p}</option>)}
-          </select>
-          <div style={{ display: 'flex', gap: 12, marginTop: 8 }}>
-            <button onClick={() => setMaintModal(false)} className="btn btn-light flex-fill">Cancel</button>
-            <button onClick={doMaint} className="btn btn-warning fw-bold text-white flex-fill" style={{ background: '#e85d24', border: 'none' }}>Submit</button>
-          </div>
-        </Modal>
-      )}
-
-      {/* ── Edit car modal ── */}
-      {editModal && (
-        <Modal title={`Edit ${editModal.make} ${editModal.model}`} onClose={() => setEditModal(null)}>
-          <div className="mb-3">
-            <label className="form-label fw-medium">Make (Brand)</label>
-            <input
-              className="form-control"
-              value={editForm.make}
-              onChange={e => setEditForm(f => ({ ...f, make: e.target.value }))}
-            />
-          </div>
-          <div className="mb-3">
-            <label className="form-label fw-medium">Model</label>
-            <input
-              className="form-control"
-              value={editForm.model}
-              onChange={e => setEditForm(f => ({ ...f, model: e.target.value }))}
-            />
-          </div>
-          <div className="row">
-            <div className="col-6 mb-3">
-              <label className="form-label fw-medium">Price / Day ($)</label>
-              <input
-                type="number"
-                className="form-control"
-                value={editForm.pricePerDay}
-                onChange={e => setEditForm(f => ({ ...f, pricePerDay: e.target.value }))}
-              />
-            </div>
-            <div className="col-6 mb-3">
-              <label className="form-label fw-medium">Price / Hour ($)</label>
-              <input
-                type="number"
-                className="form-control"
-                value={editForm.pricePerHour}
-                onChange={e => setEditForm(f => ({ ...f, pricePerHour: e.target.value }))}
-              />
-            </div>
-          </div>
-
-          {editErr && <div className="alert alert-danger py-2">{editErr}</div>}
-
-          <div className="d-flex gap-2 mt-3">
-            <button onClick={() => setEditModal(null)} className="btn btn-light flex-fill">Cancel</button>
-            <button onClick={handleSaveEdit} className="btn btn-warning fw-bold text-white flex-fill" style={{ background: '#e85d24', border: 'none' }}>
-              Save Changes
-            </button>
-          </div>
-        </Modal>
-      )}
-
-      {/* ── Toast ── */}
-      {toast && (
-        <div style={{ position: 'fixed', bottom: 28, right: 28, background: '#1a1a1a', color: '#fff', padding: '13px 22px', borderRadius: 12, boxShadow: '0 8px 24px rgba(0,0,0,0.2)', fontSize: 14, fontWeight: 500, zIndex: 9999 }}>
-          ✓ {toast}
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ── Shared modal shell ─────────────────────────────────────────────────────
-function Modal({ title, onClose, children }) {
-  return (
-    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 200 }}>
-      <div style={{ background: '#fff', borderRadius: 20, padding: 36, width: 440, boxShadow: '0 20px 60px rgba(0,0,0,0.25)' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-          <h3 style={{ fontWeight: 800, margin: 0, fontSize: 17 }}>{title}</h3>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: 22, cursor: 'pointer', color: '#aaa', lineHeight: 1 }}>×</button>
-        </div>
-        {children}
-      </div>
-    </div>
-  );
-}
-
-// ── Tiny styled button helper ──────────────────────────────────────────────
-function actionBtn(color, borderColor) {
-  return {
-    padding: '7px 14px', border: `1.5px solid ${borderColor}`,
-    color, background: '#fff', borderRadius: 8, cursor: 'pointer',
-    fontSize: 12, fontWeight: 500,
+  const MENU_TITLES = {
+    bookings: 'My Bookings',
+    gate: 'Gate Logistics',
+    fleet: 'My Fleet',
+    maintenance: 'Maintenance',
   };
+
+  return (
+    <div className="d-flex" style={{ minHeight: '100vh' }}>
+      <AgentSidebar
+        tab={tab}
+        setTab={setTab}
+        userName={userName}
+        onLogout={() => { logout(); navigate('/'); }}
+      />
+
+      <div className="rr-content flex-grow-1" style={{ minHeight: '100vh' }}>
+        <AgentTopbar
+          title={MENU_TITLES[tab]}
+          userName={userName}
+          myCarsCount={myCars.length}
+          bookingsCount={bookings.length}
+        />
+
+        <div className="p-4" style={{ padding: '28px 32px' }}>
+          {tab === 'bookings' && (
+            <MyBookingsTab bookings={bookings} doReturn={doReturn} />
+          )}
+
+          {tab === 'gate' && (
+            <GateLogisticsTab
+              confirmedBookings={confirmedBookings}
+              setGateModal={setGateModal}
+              setGateForm={setGateForm}
+            />
+          )}
+
+          {tab === 'fleet' && (
+            <>
+              {carModal && (
+                <CarFormModal
+                  carForm={carForm}
+                  setCarForm={setCarForm}
+                  carFormErr={carFormErr}
+                  setCarModal={setCarModal}
+                  setCarFormErr={setCarFormErr}
+                  handleCreateCar={handleCreateCar}
+                />
+              )}
+              <FleetManagementTab
+                myCars={myCars}
+                bookings={bookings}
+                setCarModal={setCarModal}
+                setCarForm={setCarForm}
+                CAR_FORM_DEFAULTS={CAR_FORM_DEFAULTS}
+                setCarFormErr={setCarFormErr}
+                openEditModal={openEditModal}
+                handlePutInMaintenance={handlePutInMaintenance}
+                handleDeleteCar={handleDeleteCar}
+              />
+            </>
+          )}
+
+          {tab === 'maintenance' && (
+            <MaintenanceTab
+              alerts={alerts}
+              setMaintModal={setMaintModal}
+              changeStatus={changeStatus}
+            />
+          )}
+        </div>
+      </div>
+
+      <GateModal
+        gateModal={gateModal}
+        gateForm={gateForm}
+        setGateForm={setGateForm}
+        setGateModal={setGateModal}
+        doGate={doGate}
+      />
+
+      <MaintenanceModal
+        maintModal={maintModal}
+        maintForm={maintForm}
+        setMaintForm={setMaintForm}
+        setMaintModal={setMaintModal}
+        doMaint={doMaint}
+      />
+
+      <EditCarModal
+        editModal={editModal}
+        editForm={editForm}
+        setEditForm={setEditForm}
+        editErr={editErr}
+        setEditModal={setEditModal}
+        handleSaveEdit={handleSaveEdit}
+      />
+
+      <Toast toast={toast} />
+    </div>
+  );
 }
