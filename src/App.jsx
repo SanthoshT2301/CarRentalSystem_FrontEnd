@@ -4,6 +4,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import Navbar from './components/Navbar';
 import Home from './pages/Home';
 import Login from './pages/Login';
+import Register from './pages/Register';
 import ForgotPassword from './pages/ForgotPassword';
 import BookCar from './pages/BookCar';
 import CustomerDashboard from './pages/CustomerDashboard';
@@ -21,7 +22,7 @@ export default function App() {
         <Routes>
           <Route path="/" element={<WithNav><Home /></WithNav>} />
           <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Login />} />
+          <Route path="/register" element={<Register />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
 
           <Route path="/book/:carId" element={
