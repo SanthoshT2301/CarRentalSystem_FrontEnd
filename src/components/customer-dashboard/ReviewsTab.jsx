@@ -1,19 +1,19 @@
 export default function ReviewsTab({ completedWithoutReview, setReviewModal, setReviewRating, setReviewComment, setReviewMsg, myReviews }) {
   return (
     <div>
-      <div style={{ fontWeight: 700, fontSize: 22, marginBottom: 20 }}>Reviews</div>
+      <div className="fw-bold fs-22 mb-4">Reviews</div>
 
       {completedWithoutReview.length > 0 && (
-        <div style={{ background: '#fff', borderRadius: 14, padding: 24, marginBottom: 20, boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
-          <div style={{ fontWeight: 600, fontSize: 15, marginBottom: 14 }}>Pending Reviews ({completedWithoutReview.length})</div>
+        <div className="rr-card p-4 mb-4">
+          <div className="fw-semibold fs-13 mb-3">Pending Reviews ({completedWithoutReview.length})</div>
           {completedWithoutReview.map(b => (
-            <div key={b.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 0', borderBottom: '1px solid #f5f5f5' }}>
+            <div key={b.id} className="rr-review-card d-flex justify-content-between align-items-center py-3">
               <div>
-                <div style={{ fontWeight: 500, fontSize: 14 }}>Car #{b.carId}</div>
-                <div style={{ color: '#888', fontSize: 12 }}>{b.pickupDate} — {b.dropoffDate}</div>
+                <div className="fw-medium fs-13">Car #{b.carId}</div>
+                <div className="text-secondary fs-12">{b.pickupDate} — {b.dropoffDate}</div>
               </div>
               <button onClick={() => { setReviewModal(b); setReviewRating(5); setReviewComment(''); setReviewMsg(''); }}
-                style={{ padding: '7px 18px', background: '#e85d24', color: '#fff', border: 'none', borderRadius: 20, cursor: 'pointer', fontWeight: 600, fontSize: 13 }}>
+                className="btn rr-orange-btn rounded-pill fw-semibold fs-13 px-3 py-2">
                 Write Review
               </button>
             </div>
@@ -21,19 +21,19 @@ export default function ReviewsTab({ completedWithoutReview, setReviewModal, set
         </div>
       )}
 
-      <div style={{ background: '#fff', borderRadius: 14, padding: 24, boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
-        <div style={{ fontWeight: 600, fontSize: 15, marginBottom: 14 }}>Your Past Reviews</div>
+      <div className="rr-card p-4">
+        <div className="fw-semibold fs-13 mb-3">Your Past Reviews</div>
         {myReviews.length === 0 ? (
-          <p style={{ color: '#aaa', fontSize: 14 }}>No reviews yet.</p>
+          <p className="text-secondary fs-13">No reviews yet.</p>
         ) : (
           myReviews.map(r => (
-            <div key={r.reviewId} style={{ padding: '14px 0', borderBottom: '1px solid #f5f5f5' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                <div style={{ fontWeight: 600, fontSize: 14 }}>{r.carName}</div>
-                <div style={{ color: '#f59e0b', letterSpacing: 2, fontSize: 15 }}>{'★'.repeat(r.rating || 5)}{'☆'.repeat(5 - (r.rating || 5))}</div>
+            <div key={r.reviewId} className="rr-review-card py-3">
+              <div className="d-flex justify-content-between align-items-start">
+                <div className="fw-semibold fs-13">{r.carName}</div>
+                <div className="rr-stars">{'★'.repeat(r.rating || 5)}{'☆'.repeat(5 - (r.rating || 5))}</div>
               </div>
-              <p style={{ color: '#555', fontSize: 13, margin: '6px 0 4px', lineHeight: 1.5 }}>{r.comment}</p>
-              <div style={{ color: '#aaa', fontSize: 12 }}>{r.createdAt?.split(' ')[0]}</div>
+              <p className="text-secondary fs-13 mt-2 mb-1" style={{ lineHeight: 1.5 }}>{r.comment}</p>
+              <div className="text-secondary fs-12">{r.createdAt?.split(' ')[0]}</div>
             </div>
           ))
         )}
