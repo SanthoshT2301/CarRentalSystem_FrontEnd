@@ -1,16 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  getAgentBookings,   // bookings for THIS agent's cars only
-  getAgentCars,       // cars added by THIS agent
-  createCar,
-  deleteCar,
-  returnCar,
-  getMaintenanceAlerts,
-  addMaintenanceAlert,
-  updateAlertStatus,
-  gateCheckout,
-  gateCheckin,
+  getAgentBookings, getAgentCars, createCar, deleteCar, updateCar, returnCar,
+  getMaintenanceAlerts, addMaintenanceAlert, updateAlertStatus,
+  gateCheckout, gateCheckin,
 } from '../api/api';
 import { useAuth } from '../context/AuthContext';
 
@@ -38,7 +31,7 @@ const STATUS_CLR   = { confirmed: '#2563eb', completed: '#16a34a', cancelled: '#
 
 const CAR_FORM_DEFAULTS = {
   make: '', model: '', year: 2024, type: 'Sedan',
-  location: 'San Francisco', pricePerDay: 60, image: '',
+  location: 'San Francisco', pricePerDay: 60, pricePerHour: 6, image: '',
   noSeats: 5, transmission: 'Automatic', color: 'White', mileage: 'Brand New',
 };
 
@@ -61,6 +54,11 @@ export default function AgentDashboard() {
   const [carModal,   setCarModal]   = useState(false);
   const [carForm,    setCarForm]    = useState(CAR_FORM_DEFAULTS);
   const [carFormErr, setCarFormErr] = useState('');
+
+  // ── edit car modal ───────────────────────────────────────────────────────
+  const [editModal, setEditModal] = useState(null); // car being edited
+  const [editForm,  setEditForm]  = useState({ make: '', model: '', pricePerDay: '', pricePerHour: '' });
+  const [editErr,   setEditErr]   = useState('');
 
   function flash(msg) { setToast(msg); setTimeout(() => setToast(''), 3500); }
 
@@ -105,6 +103,53 @@ export default function AgentDashboard() {
       await deleteCar(id);
       setMyCars(prev => prev.filter(c => c.id !== id));
       flash('Car removed.');
+    } catch (e) {
+      flash(e.message);
+    }
+  }
+
+  // ── edit car ─────────────────────────────────────────────────────────────
+  function openEditModal(car) {
+    setEditModal(car);
+    setEditForm({
+      make: car.make || '',
+      model: car.model || '',
+      pricePerDay: car.pricePerDay || '',
+      pricePerHour: car.pricePerHour || '',
+    });
+    setEditErr('');
+  }
+
+  async function handleSaveEdit() {
+    setEditErr('');
+    try {
+      const updated = await updateCar(editModal.id, {
+        make: editForm.make,
+        model: editForm.model,
+        pricePerDay: editForm.pricePerDay !== '' ? parseFloat(editForm.pricePerDay) : null,
+        pricePerHour: editForm.pricePerHour !== '' ? parseFloat(editForm.pricePerHour) : null,
+      });
+      setMyCars(prev => prev.map(c => c.id === editModal.id ? { ...c, ...updated } : c));
+      setEditModal(null);
+      flash('Car updated successfully!');
+    } catch (e) {
+      setEditErr(e.message);
+    }
+  }
+
+  // ── put car in maintenance ──────────────────────────────────────────────
+  async function handlePutInMaintenance(car) {
+    if (!window.confirm(`Put ${car.make} ${car.model} under maintenance?`)) return;
+    try {
+      const alert = await addMaintenanceAlert({
+        carId: car.id,
+        description: 'Routine maintenance requested by agent.',
+        priority: 'Medium',
+        reportedBy: userName,
+      });
+      setAlerts(prev => [alert, ...prev]);
+      setMyCars(prev => prev.map(c => c.id === car.id ? { ...c, available: false } : c));
+      flash('Car moved to maintenance.');
     } catch (e) {
       flash(e.message);
     }
@@ -158,6 +203,7 @@ export default function AgentDashboard() {
         reportedBy:  userName,
       });
       setAlerts(prev => [a, ...prev]);
+      setMyCars(prev => prev.map(c => c.id === a.carId ? { ...c, available: false } : c));
       flash('Alert created.');
       setMaintModal(false);
       setMaintForm({ carId: '', description: '', priority: 'Medium' });
@@ -170,6 +216,9 @@ export default function AgentDashboard() {
     try {
       const a = await updateAlertStatus(id, status);
       setAlerts(prev => prev.map(x => x.maintenanceAlertId === id ? a : x));
+      if (status === 'Fixed') {
+        setMyCars(prev => prev.map(c => c.id === a.carId ? { ...c, available: true } : c));
+      }
     } catch (e) {
       flash(e.message);
     }
@@ -362,7 +411,8 @@ export default function AgentDashboard() {
                 </div>
                 <button
                   onClick={() => { setCarModal(true); setCarForm(CAR_FORM_DEFAULTS); setCarFormErr(''); }}
-                  style={{ background: '#e85d24', color: '#fff', border: 'none', padding: '10px 22px', borderRadius: 10, fontWeight: 600, cursor: 'pointer', fontSize: 14 }}>
+                  className="btn btn-warning fw-bold text-white"
+                  style={{ background: '#e85d24', border: 'none' }}>
                   + Add Car
                 </button>
               </div>
@@ -373,13 +423,14 @@ export default function AgentDashboard() {
                   <div style={{ fontWeight: 700, fontSize: 16, marginBottom: 20 }}>Add New Car to Your Fleet</div>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14 }}>
                     {[
-                      ['make',        'Make (Brand)', 'text'],
-                      ['model',       'Model',        'text'],
-                      ['year',        'Year',         'number'],
-                      ['pricePerDay', 'Price/Day ($)', 'number'],
-                      ['noSeats',     'Seats',        'number'],
-                      ['color',       'Color',        'text'],
-                      ['mileage',     'Mileage',      'text'],
+                      ['make',         'Make (Brand)',  'text'],
+                      ['model',        'Model',         'text'],
+                      ['year',         'Year',          'number'],
+                      ['pricePerDay',  'Price/Day ($)', 'number'],
+                      ['pricePerHour', 'Price/Hour ($)','number'],
+                      ['noSeats',      'Seats',         'number'],
+                      ['color',        'Color',         'text'],
+                      ['mileage',      'Mileage',       'text'],
                     ].map(([k, l, t]) => (
                       <div key={k}>
                         <label style={S.lbl}>{l}</label>
@@ -420,8 +471,8 @@ export default function AgentDashboard() {
                   {carFormErr && <p style={{ color: '#dc2626', fontSize: 13, marginTop: 10 }}>{carFormErr}</p>}
 
                   <div style={{ display: 'flex', gap: 12, marginTop: 20 }}>
-                    <button onClick={() => { setCarModal(false); setCarFormErr(''); }} style={{ padding: '10px 24px', background: '#f5f5f5', border: 'none', borderRadius: 10, cursor: 'pointer', fontWeight: 500 }}>Cancel</button>
-                    <button onClick={handleCreateCar} style={{ padding: '10px 24px', background: '#e85d24', color: '#fff', border: 'none', borderRadius: 10, cursor: 'pointer', fontWeight: 700 }}>Add Car</button>
+                    <button onClick={() => { setCarModal(false); setCarFormErr(''); }} className="btn btn-light fw-medium">Cancel</button>
+                    <button onClick={handleCreateCar} className="btn btn-warning fw-bold text-white" style={{ background: '#e85d24', border: 'none' }}>Add Car</button>
                   </div>
                 </div>
               )}
@@ -460,9 +511,24 @@ export default function AgentDashboard() {
                         📋 {bookings.filter(b => b.carId === car.id).length} booking{bookings.filter(b => b.carId === car.id).length !== 1 ? 's' : ''} on this car
                       </div>
 
+                      {/* Edit + Maintenance actions */}
+                      <div className="d-flex gap-2 mb-2">
+                        <button
+                          onClick={() => openEditModal(car)}
+                          className="btn btn-sm btn-outline-primary w-50">
+                          ✏ Edit
+                        </button>
+                        <button
+                          onClick={() => handlePutInMaintenance(car)}
+                          disabled={!car.available}
+                          className="btn btn-sm btn-outline-warning w-50">
+                          🛠 {car.available ? 'Maintenance' : 'In Maintenance'}
+                        </button>
+                      </div>
+
                       <button
                         onClick={() => handleDeleteCar(car.id)}
-                        style={{ width: '100%', padding: '8px', background: '#fee2e2', color: '#dc2626', border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>
+                        className="btn btn-sm btn-outline-danger w-100">
                         🗑 Remove from Fleet
                       </button>
                     </div>
@@ -472,7 +538,7 @@ export default function AgentDashboard() {
                   <div style={{ gridColumn: '1/-1', textAlign: 'center', padding: 60, color: '#aaa' }}>
                     <div style={{ fontSize: 40, marginBottom: 12 }}>🚗</div>
                     <div>You haven't added any cars yet.</div>
-                    <button onClick={() => { setCarModal(true); setCarFormErr(''); }} style={{ marginTop: 16, padding: '10px 24px', background: '#e85d24', color: '#fff', border: 'none', borderRadius: 10, cursor: 'pointer', fontWeight: 600 }}>
+                    <button onClick={() => { setCarModal(true); setCarFormErr(''); }} className="btn btn-warning fw-bold text-white mt-3" style={{ background: '#e85d24', border: 'none' }}>
                       Add Your First Car
                     </button>
                   </div>
@@ -486,7 +552,7 @@ export default function AgentDashboard() {
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
                 <div style={{ fontWeight: 700, fontSize: 22 }}>Maintenance Alerts</div>
-                <button onClick={() => setMaintModal(true)} style={{ background: '#e85d24', color: '#fff', border: 'none', padding: '10px 20px', borderRadius: 10, fontWeight: 600, cursor: 'pointer' }}>
+                <button onClick={() => setMaintModal(true)} className="btn btn-warning fw-bold text-white" style={{ background: '#e85d24', border: 'none' }}>
                   + Report Alert
                 </button>
               </div>
@@ -507,13 +573,20 @@ export default function AgentDashboard() {
                         Reported by {a.reportedBy} · {new Date(a.createdAt).toLocaleDateString()}
                       </p>
                     </div>
-                    <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                      <span style={{ fontSize: 12, color: '#888' }}>Status: {a.status}</span>
+                    <div className="d-flex align-items-center gap-2">
+                      <span
+                        className={`badge ${
+                          a.status === 'Fixed' ? 'bg-success'
+                          : a.status === 'In Progress' ? 'bg-warning text-dark'
+                          : 'bg-secondary'
+                        }`}>
+                        {a.status}
+                      </span>
                       {a.status !== 'Fixed' && (
                         <select
                           onChange={e => changeStatus(a.maintenanceAlertId, e.target.value)}
                           defaultValue=""
-                          style={{ padding: '6px 10px', border: '1px solid #e0e0e0', borderRadius: 8, fontSize: 13, cursor: 'pointer' }}>
+                          className="form-select form-select-sm w-auto">
                           <option value="" disabled>Update</option>
                           {['In Progress', 'Fixed'].map(s => <option key={s}>{s}</option>)}
                         </select>
@@ -557,13 +630,13 @@ export default function AgentDashboard() {
             </>
           )}
           <div style={{ display: 'flex', gap: 12, marginTop: 20 }}>
-            <button onClick={() => setGateModal(null)} style={{ flex: 1, padding: '12px', background: 'none', border: '1.5px solid #e0e0e0', borderRadius: 10, cursor: 'pointer' }}>Cancel</button>
-            <button onClick={doGate} style={{ flex: 1, padding: '12px', background: '#e85d24', color: '#fff', border: 'none', borderRadius: 10, cursor: 'pointer', fontWeight: 700 }}>Confirm</button>
+            <button onClick={() => setGateModal(null)} className="btn btn-light flex-fill">Cancel</button>
+            <button onClick={doGate} className="btn btn-warning fw-bold text-white flex-fill" style={{ background: '#e85d24', border: 'none' }}>Confirm</button>
           </div>
         </Modal>
       )}
 
-      {/* ── Maintenance modal ── */}
+      {/* ── Maintenance (report) modal ── */}
       {maintModal && (
         <Modal title="Report Maintenance Alert" onClose={() => setMaintModal(false)}>
           {[['carId', 'Car ID', 'number'], ['description', 'Description', 'text']].map(([k, l, t]) => (
@@ -573,12 +646,63 @@ export default function AgentDashboard() {
             </div>
           ))}
           <label style={S.lbl}>Priority</label>
-          <select value={maintForm.priority} onChange={e => setMaintForm(f => ({ ...f, priority: e.target.value }))} style={{ ...S.inp, marginBottom: 12 }}>
+          <select value={maintForm.priority} onChange={e => setMaintForm(f => ({ ...f, priority: e.target.value }))} className="form-select mb-3">
             {['Low', 'Medium', 'High'].map(p => <option key={p}>{p}</option>)}
           </select>
           <div style={{ display: 'flex', gap: 12, marginTop: 8 }}>
-            <button onClick={() => setMaintModal(false)} style={{ flex: 1, padding: '12px', background: 'none', border: '1.5px solid #e0e0e0', borderRadius: 10, cursor: 'pointer' }}>Cancel</button>
-            <button onClick={doMaint} style={{ flex: 1, padding: '12px', background: '#e85d24', color: '#fff', border: 'none', borderRadius: 10, cursor: 'pointer', fontWeight: 700 }}>Submit</button>
+            <button onClick={() => setMaintModal(false)} className="btn btn-light flex-fill">Cancel</button>
+            <button onClick={doMaint} className="btn btn-warning fw-bold text-white flex-fill" style={{ background: '#e85d24', border: 'none' }}>Submit</button>
+          </div>
+        </Modal>
+      )}
+
+      {/* ── Edit car modal ── */}
+      {editModal && (
+        <Modal title={`Edit ${editModal.make} ${editModal.model}`} onClose={() => setEditModal(null)}>
+          <div className="mb-3">
+            <label className="form-label fw-medium">Make (Brand)</label>
+            <input
+              className="form-control"
+              value={editForm.make}
+              onChange={e => setEditForm(f => ({ ...f, make: e.target.value }))}
+            />
+          </div>
+          <div className="mb-3">
+            <label className="form-label fw-medium">Model</label>
+            <input
+              className="form-control"
+              value={editForm.model}
+              onChange={e => setEditForm(f => ({ ...f, model: e.target.value }))}
+            />
+          </div>
+          <div className="row">
+            <div className="col-6 mb-3">
+              <label className="form-label fw-medium">Price / Day ($)</label>
+              <input
+                type="number"
+                className="form-control"
+                value={editForm.pricePerDay}
+                onChange={e => setEditForm(f => ({ ...f, pricePerDay: e.target.value }))}
+              />
+            </div>
+            <div className="col-6 mb-3">
+              <label className="form-label fw-medium">Price / Hour ($)</label>
+              <input
+                type="number"
+                className="form-control"
+                value={editForm.pricePerHour}
+                onChange={e => setEditForm(f => ({ ...f, pricePerHour: e.target.value }))}
+              />
+            </div>
+          </div>
+
+          {editErr && <div className="alert alert-danger py-2">{editErr}</div>}
+
+          <div className="d-flex gap-2 mt-3">
+            <button onClick={() => setEditModal(null)} className="btn btn-light flex-fill">Cancel</button>
+            <button onClick={handleSaveEdit} className="btn btn-warning fw-bold text-white flex-fill" style={{ background: '#e85d24', border: 'none' }}>
+              Save Changes
+            </button>
           </div>
         </Modal>
       )}

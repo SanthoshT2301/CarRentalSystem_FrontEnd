@@ -42,6 +42,8 @@ export const resetPassword = (body) =>
 export const getCars = (page = 1, pageSize = 8) =>
   request(`/cars?page=${page}&pageSize=${pageSize}`);
 export const getCarById = (id) => request(`/cars/${id}`);
+export const updateCar = (id, body) =>
+  request(`/cars/${id}`, { method: 'PATCH', body: JSON.stringify(body) });
 
 /** Admin OR Agent can create a car. Pass agentId when called from an agent context. */
 export const createCar = (body, agentId = null) => {
@@ -155,3 +157,8 @@ export const flagDispute = (reviewId, resolution) =>
   request(`/Disputes/dispute/${reviewId}`, { method: 'POST', body: JSON.stringify({ resolution }) });
 export const resolveDispute = (reviewId, action) =>
   request(`/Disputes/resolve/${reviewId}`, { method: 'POST', body: JSON.stringify({ action }) });
+
+export const getAllUsers = () => request('/admin/users');
+export const setUserStatus = (id, isActive) =>
+  request(`/admin/users/${id}/status?isActive=${isActive}`, { method: 'PATCH' });
+export const deleteUser = (id) => request(`/admin/users/${id}`, { method: 'DELETE' });

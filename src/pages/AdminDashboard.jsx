@@ -5,8 +5,9 @@ import {
   getAllPromotions, addPromotion, togglePromotion, deletePromotion,
   getAllReviews, flagDispute, resolveDispute,
   getBookingReport, getRevenueReport, getReviewReport, getPerformanceReport,
-  downloadReport,                                          
+  downloadReport,
   getAllBookings, getPendingUsers, approveUser,
+  getAllUsers, setUserStatus, deleteUser,
 } from '../api/api';
 import { useAuth } from '../context/AuthContext';
 
@@ -58,6 +59,11 @@ export default function AdminDashboard() {
   const [disputeModal, setDisputeModal] = useState(null);
   const [disputeText, setDisputeText]   = useState('');
 
+const [allUsers, setAllUsers] = useState([]);
+const [userSearch, setUserSearch] = useState('');
+const [roleFilter, setRoleFilter] = useState('All');
+
+
   function flash(msg, type = 'success') { setToast({ msg, type }); setTimeout(() => setToast({ msg: '', type: 'success' }), 3500); }
 
   /* ── load pending count on mount (badge) ── */
@@ -71,6 +77,9 @@ export default function AdminDashboard() {
       getAdminStats().then(setStats).catch(() => {});
       getAllBookings(1, 5).then(r => setRecentBooks(r.data || [])).catch(() => {});
     }
+    if (tab === 'users') {
+  getAllUsers().then(r => setAllUsers(r.data || [])).catch(() => {});
+}
     if (tab === 'approvals') {
       getPendingUsers()
         .then(r => { const arr = Array.isArray(r) ? r : (r?.data || []); setPendingUsers(arr); setPendingCount(arr.length); })
@@ -145,6 +154,31 @@ export default function AdminDashboard() {
     catch (e) { flash(e.message, 'error'); }
   }
 
+
+
+async function handleToggleUserActive(user) {
+  const next = !user.isActive;
+  if (!window.confirm(`${next ? 'Activate' : 'Deactivate'} ${user.firstName} ${user.lastName}?`)) return;
+  try {
+    await setUserStatus(user.userId, next);
+    setAllUsers(u => u.map(x => x.userId === user.userId ? { ...x, isActive: next } : x));
+    flash(`User ${next ? 'activated' : 'deactivated'}.`);
+  } catch (e) { flash(e.message, 'error'); }
+}
+
+async function handleDeleteUser(user) {
+  if (!window.confirm(`Permanently delete ${user.firstName} ${user.lastName}? This cannot be undone.`)) return;
+  try {
+    await deleteUser(user.userId);
+    setAllUsers(u => u.filter(x => x.userId !== user.userId));
+    flash('User deleted.');
+  } catch (e) { flash(e.message, 'error'); }
+}
+
+
+
+
+
   /* ── dispute actions ── */
   async function handleFlag() {
     try {
@@ -166,14 +200,15 @@ export default function AdminDashboard() {
   const initial = userName ? userName.charAt(0).toUpperCase() : 'A';
 
   const MENU = [
-    { key: 'overview',   icon: '📊', label: 'Overview' },
-    { key: 'approvals',  icon: '✅', label: 'User Approvals', badge: pendingCount },
-    { key: 'bookings',   icon: '📋', label: 'All Bookings' },
-    { key: 'fleet',      icon: '🚗', label: 'Fleet Management' },
-    { key: 'promotions', icon: '🎟', label: 'Promotions' },
-    { key: 'disputes',   icon: '🛡', label: 'Reviews & Disputes' },
-    { key: 'reports',    icon: '📈', label: 'Reports' },
-  ];
+  { key: 'overview',   icon: '📊', label: 'Overview' },
+  { key: 'approvals',  icon: '✅', label: 'User Approvals', badge: pendingCount },
+  { key: 'users',      icon: '👤', label: 'User Management' },
+  { key: 'bookings',   icon: '📋', label: 'All Bookings' },
+  { key: 'fleet',      icon: '🚗', label: 'Fleet Management' },
+  { key: 'promotions', icon: '🎟', label: 'Promotions' },
+  { key: 'disputes',   icon: '🛡', label: 'Reviews & Disputes' },
+  { key: 'reports',    icon: '📈', label: 'Reports' },
+];
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh', fontFamily: 'system-ui, sans-serif' }}>
@@ -389,6 +424,95 @@ export default function AdminDashboard() {
               )}
             </div>
           )}
+          {/* ════════════ USER MANAGEMENT ════════════ */}
+{tab === 'users' && (
+  <div>
+    <div className="d-flex justify-content-between align-items-center mb-3">
+      <div>
+        <div style={{ fontWeight: 700, fontSize: 22 }}>User Management</div>
+        <div className="text-muted" style={{ fontSize: 14 }}>
+          View every user, deactivate accounts, or delete them permanently.
+        </div>
+      </div>
+      <div className="d-flex gap-2">
+        <select
+          value={roleFilter}
+          onChange={e => setRoleFilter(e.target.value)}
+          className="form-select form-select-sm"
+          style={{ width: 140 }}>
+          {['All', 'Admin', 'Agent', 'Customer'].map(r => <option key={r}>{r}</option>)}
+        </select>
+        <input
+          value={userSearch}
+          onChange={e => setUserSearch(e.target.value)}
+          placeholder="Search name or email..."
+          className="form-control form-control-sm"
+          style={{ width: 220 }}
+        />
+      </div>
+    </div>
+
+    <div style={{ ...S.card, overflow: 'hidden' }}>
+      <div style={{ overflowX: 'auto' }}>
+        <table className="table table-hover align-middle mb-0">
+          <thead>
+            <tr>
+              {['ID', 'Name', 'Email', 'Phone', 'Role', 'Status', 'Actions'].map(h => (
+                <th key={h} style={S.th}>{h}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {allUsers
+              .filter(u => roleFilter === 'All' || u.role === roleFilter)
+              .filter(u =>
+                !userSearch ||
+                `${u.firstName} ${u.lastName} ${u.email}`.toLowerCase().includes(userSearch.toLowerCase())
+              )
+              .map(u => (
+                <tr key={u.userId}>
+                  <td style={S.td}>#{u.userId}</td>
+                  <td style={S.td}>{u.firstName} {u.lastName}</td>
+                  <td style={S.td}>{u.email}</td>
+                  <td style={S.td}>{u.phone || '—'}</td>
+                  <td style={S.td}>
+                    <span style={S.badge(
+                      u.role === 'Admin' ? '#fce7f3' : u.role === 'Agent' ? '#dbeafe' : '#f0fdf4',
+                      u.role === 'Admin' ? '#db2777' : u.role === 'Agent' ? '#2563eb' : '#16a34a'
+                    )}>
+                      {u.role}
+                    </span>
+                  </td>
+                  <td style={S.td}>
+                    <span className={`badge ${u.isActive ? 'bg-success' : 'bg-secondary'}`}>
+                      {u.isActive ? 'Active' : 'Inactive'}
+                    </span>
+                  </td>
+                  <td style={S.td}>
+                    <div className="d-flex gap-2">
+                      <button
+                        onClick={() => handleToggleUserActive(u)}
+                        className={`btn btn-sm ${u.isActive ? 'btn-outline-secondary' : 'btn-outline-success'}`}>
+                        {u.isActive ? 'Deactivate' : 'Activate'}
+                      </button>
+                      <button
+                        onClick={() => handleDeleteUser(u)}
+                        className="btn btn-sm btn-outline-danger">
+                        🗑 Delete
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            {allUsers.length === 0 && (
+              <tr><td colSpan={7} className="text-center text-muted py-5">No users found.</td></tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+)}
 
           {/* ════════════ ALL BOOKINGS ════════════ */}
           {tab === 'bookings' && <AllBookingsTab />}
