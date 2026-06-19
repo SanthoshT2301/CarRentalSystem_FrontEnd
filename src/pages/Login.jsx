@@ -161,7 +161,7 @@ export default function LoginRegister() {
               {/* Role selector */}
               <label style={labelStyle}>Account type</label>
               <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
-                {[{ id: 2, label: '👤 Customer', desc: 'Book cars' }, { id: 3, label: '🔧 Agent', desc: 'Manage fleet' }].map(r => (
+                {[{ id: 2, label: '👤 Customer', desc: 'Book cars' }, { id: 3, label: '🔧 Agent', desc: 'Manage fleet' },{id: 1, label: '👨‍💼 Admin', desc: 'Admin Access'}].map(r => (
                   <button key={r.id} onClick={() => setRoleId(r.id)} style={{
                     flex: 1, padding: '10px', borderRadius: 8, cursor: 'pointer', fontSize: 13,
                     border: `2px solid ${roleId === r.id ? '#e85d24' : '#e0e0e0'}`,

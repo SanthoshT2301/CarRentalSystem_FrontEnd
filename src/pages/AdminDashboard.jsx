@@ -5,6 +5,7 @@ import {
   getAllPromotions, addPromotion, togglePromotion, deletePromotion,
   getAllReviews, flagDispute, resolveDispute,
   getBookingReport, getRevenueReport, getReviewReport, getPerformanceReport,
+  downloadReport,                                          
   getAllBookings, getPendingUsers, approveUser,
 } from '../api/api';
 import { useAuth } from '../context/AuthContext';
@@ -598,11 +599,18 @@ export default function AdminDashboard() {
                   <input type="date" value={dateRange.end} onChange={e => setDateRange(d => ({ ...d, end: e.target.value }))} style={S.inp} />
                 </div>
                 <button onClick={loadReport} style={{ padding: '9px 22px', background: '#059669', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontWeight: 600, fontSize: 13 }}>▶ Run</button>
-                <a href={`http://localhost:5022/api/v1/admin/reports/${reportType}/download?StartDate=${dateRange.start}&EndDate=${dateRange.end}`}
-                  target="_blank" rel="noreferrer"
-                  style={{ padding: '9px 22px', background: '#2563eb', color: '#fff', borderRadius: 8, cursor: 'pointer', fontWeight: 600, textDecoration: 'none', fontSize: 13 }}>
-                  ⬇ CSV
-                </a>
+                <button
+  onClick={async () => {
+    try {
+      await downloadReport(reportType, dateRange.start, dateRange.end);
+    } catch (e) {
+      flash(e.message, 'error');
+    }
+  }}
+  style={{ padding: '9px 22px', background: '#2563eb', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontWeight: 600, fontSize: 13 }}
+>
+  ⬇ CSV
+</button>
               </div>
               <div style={{ ...S.card, overflow: 'hidden' }}>
                 {reportData.length === 0 ? (

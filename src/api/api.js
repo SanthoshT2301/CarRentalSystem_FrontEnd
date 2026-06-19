@@ -130,12 +130,24 @@ export const getReviewReport = (start, end) =>
   request(`/admin/reports/reviews?StartDate=${start}&EndDate=${end}`);
 export const getPerformanceReport = (start, end) =>
   request(`/admin/reports/performance?StartDate=${start}&EndDate=${end}`);
-export const downloadReport = (type, start, end) => {
-  const token = getToken();
-  window.open(
-    `${BASE}/admin/reports/${type}/download?StartDate=${start}&EndDate=${end}&token=${token}`,
-    '_blank'
+export const downloadReport = async (type, start, end) => {
+  const res = await fetch(
+    `${BASE}/admin/reports/${type}/download?StartDate=${start}&EndDate=${end}`,
+    { headers: authHeaders() }
   );
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: res.statusText }));
+    throw new Error(err.error || err.message || 'Failed to download report.');
+  }
+  const blob = await res.blob();
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${type}-report-${start}-to-${end}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  window.URL.revokeObjectURL(url);
 };
 
 // Disputes
