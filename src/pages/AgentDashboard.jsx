@@ -44,7 +44,7 @@ const STATUS_CLR   = { confirmed: '#2563eb', completed: '#16a34a', cancelled: '#
 
 const CAR_FORM_DEFAULTS = {
   make: '', model: '', year: 2024, type: 'Sedan',
-  location: 'San Francisco', pricePerDay: 60, pricePerHour: 6, image: '',
+  location: 'Chennai', pricePerDay: 1000, pricePerHour: 70, image: '',
   noSeats: 5, transmission: 'Automatic', color: 'White', mileage: 'Brand New',
 };
 

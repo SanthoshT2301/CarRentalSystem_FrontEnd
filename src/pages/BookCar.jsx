@@ -2,8 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getCarById, createBooking, validatePromoCode } from '../api/api';
 import { useAuth } from '../context/AuthContext';
-
-const LOCATIONS = ['San Francisco', 'New York', 'Denver', 'Los Angeles'];
+const LOCATIONS = ['Chennai', 'Madurai', 'Coimbatore', 'Trichy'];
 
 export default function BookCar() {
   const { carId } = useParams();
@@ -39,11 +38,11 @@ export default function BookCar() {
     if (!car) return 0;
     let base = 0;
     if (mode === 'hourly') {
-      base = Math.ceil((car.pricePerDay || 50) / 10) * (form.durationHours || 1);
+     base = Math.ceil((car.pricePerDay || 1500) / 24) * (form.durationHours || 1);
     } else {
       const d1 = new Date(form.pickupDate), d2 = new Date(form.dropoffDate);
       const days = Math.max(1, Math.ceil((d2 - d1) / 86400000));
-      base = (car.pricePerDay || 50) * (isNaN(days) ? 1 : days);
+      base = (car.pricePerDay || 1500) * (isNaN(days) ? 1 : days);
     }
     if (promoData) base = base * (1 - promoData.discountPercent / 100);
     return base.toFixed(2);
@@ -95,7 +94,7 @@ export default function BookCar() {
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                   {car.features.slice(0, 3).map((f, i) => <span key={i} style={{ background: '#f4f4f4', fontSize: 11, padding: '3px 10px', borderRadius: 20, color: '#555' }}>{f}</span>)}
                 </div>
-                <p style={{ color: '#e85d24', fontWeight: 700, fontSize: 20, margin: '12px 0 0' }}>${car.pricePerDay}<span style={{ fontSize: 13, fontWeight: 400 }}>/day</span></p>
+                <p style={{ color: '#e85d24', fontWeight: 700, fontSize: 20, margin: '12px 0 0' }}>₹{car.pricePerDay}<span style={{ fontSize: 13, fontWeight: 400 }}>/day</span></p>
               </div>
             </div>
 
@@ -213,7 +212,9 @@ export default function BookCar() {
                   mode === 'daily'
                     ? ['Dates', form.pickupDate && form.dropoffDate ? `${form.pickupDate} → ${form.dropoffDate}` : '—']
                     : ['Duration', `${form.durationHours}h from ${form.pickupTime}`],
-                  ['Rate', mode === 'daily' ? `$${car.pricePerDay}/day` : `$${Math.ceil((car.pricePerDay || 50) / 10)}/hr`],
+                  ['Rate', mode === 'daily'
+  ? `₹${car.pricePerDay}/day`
+  : `₹${Math.ceil((car.pricePerDay || 1500) / 24)}/hr`],
                 ].map(([k, v]) => (
                   <div key={k} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10 }}>
                     <span style={{ color: '#888', fontSize: 13 }}>{k}</span>
@@ -237,7 +238,7 @@ export default function BookCar() {
               <div style={{ borderTop: '1px solid #f0f0f0', paddingTop: 16, marginBottom: 20 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span style={{ fontWeight: 700, fontSize: 16 }}>Total</span>
-                  <span style={{ fontWeight: 800, fontSize: 24, color: '#e85d24' }}>${calcTotal()}</span>
+                  <span style={{ fontWeight: 800, fontSize: 24, color: '#e85d24' }}>₹{calcTotal()}</span>
                 </div>
                 {promoData && <p style={{ color: '#16a34a', fontSize: 12, margin: '4px 0 0' }}>Discount applied: -{promoData.discountPercent}%</p>}
               </div>

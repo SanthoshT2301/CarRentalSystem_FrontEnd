@@ -44,7 +44,7 @@ export default function AllBookingsTab() {
                 <td className="rr-td">{b.dropoffLocation}</td>
                 <td className="rr-td">{b.pickupDate}</td>
                 <td className="rr-td">{b.dropoffDate}</td>
-                <td className="rr-td fw-semibold rr-orange">${b.totalAmount}</td>
+                <td className="rr-td fw-semibold rr-orange">₹{b.totalAmount}</td>
                 <td className="rr-td"><StatusBadge status={b.status} /></td>
                 <td className="rr-td"><span className="rr-badge-pill" style={{ background: b.isHourly?'#fef3ee':'#f0fdf4', color: b.isHourly?'#e85d24':'#16a34a', fontWeight:500 }}>{b.isHourly?'Hourly':'Daily'}</span></td>
               </tr>

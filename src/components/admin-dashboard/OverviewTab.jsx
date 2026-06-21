@@ -21,7 +21,7 @@ export default function OverviewTab({ stats, recentBooks, pendingCount, setTab, 
           { label:'Total Users',    value: stats?.usersCount    ?? '—', icon:'👥', bg:'#dbeafe' },
           { label:'Total Cars',     value: stats?.carsCount     ?? '—', icon:'🚗', bg:'#dcfce7' },
           { label:'Total Bookings', value: stats?.bookingsCount ?? '—', icon:'📋', bg:'#fef3c7' },
-          { label:'Revenue',        value: stats ? `$${Number(stats.revenue).toLocaleString()}` : '—', icon:'💰', bg:'#fce7f3' },
+          { label:'Revenue',        value: stats ? `₹${Number(stats.revenue).toLocaleString()}` : '—', icon:'💰', bg:'#fce7f3' },
         ].map(s => (
           <div key={s.label} className="col">
             <div className="rr-card d-flex align-items-center gap-3" style={{ padding:'20px 18px' }}>
@@ -66,7 +66,7 @@ export default function OverviewTab({ stats, recentBooks, pendingCount, setTab, 
                 <td className="rr-td">{b.pickupLocation}</td>
                 <td className="rr-td">{b.dropoffLocation}</td>
                 <td className="rr-td">{b.pickupDate}</td>
-                <td className="rr-td fw-semibold rr-orange">${b.totalAmount}</td>
+                <td className="rr-td fw-semibold rr-orange">₹{b.totalAmount}</td>
                 <td className="rr-td"><StatusBadge status={b.status} /></td>
               </tr>
             ))}

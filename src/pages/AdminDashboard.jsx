@@ -48,7 +48,7 @@ const [roleFilter, setRoleFilter] = useState('All');
   const [dateRange, setDateRange] = useState({ start: dateN(1), end: new Date().toISOString().split('T')[0] });
 
   const [showCarForm, setShowCarForm]   = useState(false);
-  const [carForm, setCarForm] = useState({ make:'', model:'', year:2024, type:'Sedan', location:'San Francisco', pricePerDay:60, image:'', noSeats:5, transmission:'Automatic', color:'White', mileage:'Brand New' });
+  const [carForm, setCarForm] = useState({ make:'', model:'', year:2024, type:'Sedan', location:'Chennai', pricePerDay:1000, image:'', noSeats:5, transmission:'Automatic', color:'White', mileage:'Brand New' });
   const [carFormErr, setCarFormErr]     = useState('');
   const [showPromoForm, setShowPromoForm] = useState(false);
   const [promoForm, setPromoForm] = useState({ code:'', discountPercent:10, description:'', active:true });
@@ -131,7 +131,7 @@ async function handleDeleteUser(user) {
       const car = await createCar({ ...carForm, features: [carForm.transmission, 'GPS', carForm.color] });
       setCars(c => [car, ...c]);
       setShowCarForm(false);
-      setCarForm({ make:'', model:'', year:2024, type:'Sedan', location:'San Francisco', pricePerDay:60, image:'', noSeats:5, transmission:'Automatic', color:'White', mileage:'Brand New' });
+      setCarForm({ make:'', model:'', year:2024, type:'Sedan', location:'Chennai', pricePerDay:1000, image:'', noSeats:5, transmission:'Automatic', color:'White', mileage:'Brand New' });
       flash('Car added to fleet!');
     } catch (e) { setCarFormErr(e.message); }
   }

@@ -42,7 +42,7 @@ export default function ReportsTab({ reportType, setReportType, dateRange, setDa
                     {Object.entries(row).map(([k, v]) => (
                       <td key={k} className="rr-td">
                         {typeof v === 'boolean' ? (v ? '✓' : '✗') :
-                         (k.match(/amount|revenue|gross|refund/i)) ? `$${Number(v).toFixed(2)}` :
+                         (k.match(/amount|revenue|gross|refund/i)) ? `₹${Number(v).toFixed(2)}` :
                          k.match(/rate/i) ? `${v}%` : String(v)}
                       </td>
                     ))}

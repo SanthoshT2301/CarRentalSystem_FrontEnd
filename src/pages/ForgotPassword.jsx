@@ -23,16 +23,21 @@ export default function ForgotPassword() {
   }
 
   async function verify() {
-    setLoading(true); setError('');
+    setLoading(true);
+    setError('');
     try {
       await verifyOtp({ email, otp });
       setStep(3);
-    } catch (e) { setError(e.message); }
+    }
+     catch (e) { 
+      setError(e.message);
+     }
     finally { setLoading(false); }
   }
 
   async function reset() {
-    setLoading(true); setError('');
+    setLoading(true);
+    setError('');
     try {
       await resetPassword({ email, otp, newPassword: newPw, confirmPassword: confirm });
       setMsg('Password reset! Redirecting to login...');

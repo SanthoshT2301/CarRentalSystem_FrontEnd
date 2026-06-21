@@ -7,8 +7,8 @@ export default function CarFormModal({ carForm, setCarForm, carFormErr, setCarMo
           ['make',         'Make (Brand)',  'text'],
           ['model',        'Model',         'text'],
           ['year',         'Year',          'number'],
-          ['pricePerDay',  'Price/Day ($)', 'number'],
-          ['pricePerHour', 'Price/Hour ($)','number'],
+          ['pricePerDay',  'Price/Day (₹)', 'number'],
+          ['pricePerHour', 'Price/Hour (₹)','number'],
           ['noSeats',      'Seats',         'number'],
           ['color',        'Color',         'text'],
           ['mileage',      'Mileage',       'text'],
@@ -34,7 +34,7 @@ export default function CarFormModal({ carForm, setCarForm, carFormErr, setCarMo
         <div className="col-4">
           <label className="form-label fw-medium" style={{ fontSize: 13 }}>Location</label>
           <select value={carForm.location} onChange={e => setCarForm(f => ({ ...f, location: e.target.value }))} className="form-select">
-            {['San Francisco', 'New York', 'Denver', 'Los Angeles'].map(l => <option key={l}>{l}</option>)}
+            {['Chennai', 'Madurai', 'Coimbatore', 'Trichy'].map(l => <option key={l}>{l}</option>)}
           </select>
         </div>
         <div className="col-4">

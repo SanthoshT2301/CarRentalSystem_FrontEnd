@@ -14,11 +14,11 @@ export default function EditCarModal({ editModal, editForm, setEditForm, editErr
       </div>
       <div className="row">
         <div className="col-6 mb-3">
-          <label className="form-label fw-medium">Price / Day ($)</label>
+          <label className="form-label fw-medium">Price / Day (₹)</label>
           <input type="number" className="form-control" value={editForm.pricePerDay} onChange={e => setEditForm(f => ({ ...f, pricePerDay: e.target.value }))} />
         </div>
         <div className="col-6 mb-3">
-          <label className="form-label fw-medium">Price / Hour ($)</label>
+          <label className="form-label fw-medium">Price / Hour (₹)</label>
           <input type="number" className="form-control" value={editForm.pricePerHour} onChange={e => setEditForm(f => ({ ...f, pricePerHour: e.target.value }))} />
         </div>
       </div>

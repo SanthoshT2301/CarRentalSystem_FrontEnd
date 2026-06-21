@@ -20,8 +20,16 @@ export default function Register() {
   async function handleSubmit() {
     setLoading(true); setError(''); setPendingMsg('');
     try {
-      if (!form.firstName?.trim()) { setError('First name is required.'); setLoading(false); return; }
-      if (!form.email?.trim()) { setError('Email is required.'); setLoading(false); return; }
+      if (!form.firstName?.trim()) { 
+        setError('First name is required.');
+        setLoading(false);
+        return;
+       }
+      if (!form.email?.trim()) { 
+        setError('Email is required.');
+        setLoading(false);
+         return;
+        }
       if (!form.password || form.password.length < 8) { setError('Password must be at least 8 characters.'); setLoading(false); return; }
       if (form.password !== form.confirm) { setError('Passwords do not match.'); setLoading(false); return; }
 

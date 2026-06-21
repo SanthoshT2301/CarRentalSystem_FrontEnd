@@ -18,15 +18,22 @@ export default function Login() {
   async function handleSubmit() {
     setLoading(true); setError('');
     try {
+
       const data = await apiLogin({ email: form.email, password: form.password });
       login(data);
-      if (data.role === 'Admin') navigate('/dashboard/admin');
-      else if (data.role === 'Agent') navigate('/dashboard/agent');
-      else navigate('/dashboard/customer');
+
+      if (data.role === 'Admin') 
+        navigate('/dashboard/admin');
+      else if (data.role === 'Agent')
+         navigate('/dashboard/agent');
+      else 
+        navigate('/dashboard/customer');
+
     } catch (e) {
       if (e.message.toLowerCase().includes('pending')) {
         setError('Your account is pending admin approval. Please wait for an administrator to activate your account.');
-      } else {
+      }
+       else {
         setError(e.message);
       }
     } finally {
@@ -54,7 +61,7 @@ export default function Login() {
         </p>
 
         <div className="d-flex gap-4">
-          {[['500+', 'Cars'], ['4', 'Cities'], ['$6/hr', 'From'], ['4.9★', 'Rating']].map(([v, l]) => (
+          {[['500+', 'Cars'], ['4', 'Cities'], ['₹70/hr', 'From'], ['4.9★', 'Rating']].map(([v, l]) => (
             <div key={l}>
               <p className="text-white fw-bold mb-0" style={{ fontSize: 18 }}>{v}</p>
               <p className="text-secondary mb-0" style={{ fontSize: 11 }}>{l}</p>

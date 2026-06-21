@@ -55,8 +55,8 @@ export default function ExtendReservationModal({
               {[
                 ['Old drop-off', extendResult.oldDropoffDate],
                 ['New drop-off', extendResult.newDropoffDate],
-                ['Extra charge', `$${extendResult.extraCharge}`],
-                ['New total', `$${extendResult.newTotalAmount}`],
+                ['Extra charge', `₹${extendResult.extraCharge}`],
+                ['New total', `₹${extendResult.newTotalAmount}`],
               ].map(([k, v]) => (
                 <div key={k} className="d-flex justify-content-between mb-2 fs-13">
                   <span className="text-secondary">{k}</span>

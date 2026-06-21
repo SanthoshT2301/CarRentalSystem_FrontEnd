@@ -36,7 +36,7 @@ export default function CarCard({ car }) {
                     </div>
 
                     <h5 className="text-warning">
-                        ${car.pricePerDay}/day
+                        ₹{car.pricePerDay}/day
                     </h5>
                 </div>
 

@@ -56,16 +56,16 @@ export default function BrowseCarsTab({
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
               <div style={{ fontSize: 11, fontWeight: 600, color: '#888', letterSpacing: 0.5 }}>MAX DAILY PRICE</div>
-              <div style={{ fontSize: 12, color: '#e85d24', fontWeight: 600 }}>${maxPrice}</div>
+              <div style={{ fontSize: 12, color: '#e85d24', fontWeight: 600 }}>₹{maxPrice}</div>
             </div>
-            <input type="range" min={20} max={300} value={maxPrice} onChange={e => setMaxPrice(+e.target.value)}
+            <input type="range" min={70} max={10000} value={maxPrice} onChange={e => setMaxPrice(+e.target.value)}
               style={{ width: '100%', accentColor: '#e85d24' }} />
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: '#aaa' }}>
-              <span>$20</span><span>$300</span>
+              <span>₹70</span><span>₹10000</span>
             </div>
           </div>
 
-          <button onClick={() => { setTypeFilter('All'); setCityFilter('All'); setAvailFilter('All'); setMaxPrice(200); setCarSearch(''); }}
+          <button onClick={() => { setTypeFilter('All'); setCityFilter('All'); setAvailFilter('All'); setMaxPrice(10000); setCarSearch(''); }}
             style={{ marginTop: 14, background: 'none', border: 'none', color: '#e85d24', fontSize: 13, cursor: 'pointer', padding: 0, fontWeight: 500 }}>
             Clear filters
           </button>

@@ -13,7 +13,7 @@ export default function FleetManagementTab({
         <div className="rr-card mb-4" style={{ padding:28 }}>
           <div className="fw-bold mb-4" style={{ fontSize:16 }}>Add New Car</div>
           <div className="row row-cols-3 g-3">
-            {[['make','Make (Brand)'],['model','Model'],['year','Year'],['type','Type'],['location','Location'],['pricePerDay','Price/Day ($)'],['noSeats','Seats'],['transmission','Transmission'],['color','Color'],['mileage','Mileage']].map(([k, l]) => (
+            {[['make','Make (Brand)'],['model','Model'],['year','Year'],['type','Type'],['location','Location'],['pricePerDay','Price/Day (₹)'],['noSeats','Seats'],['transmission','Transmission'],['color','Color'],['mileage','Mileage']].map(([k, l]) => (
               <div key={k} className="col">
                 <label className="rr-label">{l}</label>
                 {k === 'type' ? (
@@ -22,7 +22,7 @@ export default function FleetManagementTab({
                   </select>
                 ) : k === 'location' ? (
                   <select value={carForm[k]} onChange={e => setCarForm(f => ({ ...f, [k]: e.target.value }))} className="rr-input">
-                    {['San Francisco','New York','Denver','Los Angeles'].map(t => <option key={t}>{t}</option>)}
+                    {['Chennai','Madurai','Coimbatore','Trichy'].map(t => <option key={t}>{t}</option>)}
                   </select>
                 ) : k === 'transmission' ? (
                   <select value={carForm[k]} onChange={e => setCarForm(f => ({ ...f, [k]: e.target.value }))} className="rr-input">
@@ -58,7 +58,7 @@ export default function FleetManagementTab({
               <div style={{ padding:'14px 16px' }}>
                 <div className="d-flex justify-content-between mb-1">
                   <div className="fw-bold">{car.make} {car.model}</div>
-                  <div className="rr-orange fw-bold">${car.pricePerDay}/day</div>
+                  <div className="rr-orange fw-bold">₹{car.pricePerDay}/day</div>
                 </div>
                 <div className="text-secondary mb-3" style={{ fontSize:12 }}>{car.type} · {car.location} · {car.year}</div>
                 <button onClick={() => handleDeleteCar(car.id)} className="w-100 border-0 fw-semibold" style={{ padding:8, background:'#fee2e2', color:'#dc2626', borderRadius:8, fontSize:13 }}>🗑 Delete Car</button>

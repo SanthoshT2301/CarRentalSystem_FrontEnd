@@ -32,7 +32,7 @@ export default function ReservationsTab({
                   )}
                 </div>
                 <div className="text-end d-flex flex-column align-items-end gap-2">
-                  <div className="fw-bold fs-5 text-rr-orange">${b.totalAmount}</div>
+                  <div className="fw-bold fs-5 text-rr-orange">₹{b.totalAmount}</div>
                   <div className="fs-11 text-secondary">Booking R{String(b.id).padStart(3, '0')}</div>
                   <div className="d-flex gap-2 align-items-center flex-wrap justify-content-end">
                     <span className={`rr-status-badge status-${b.status}`}>{b.status}</span>

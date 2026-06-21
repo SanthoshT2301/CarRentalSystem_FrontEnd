@@ -23,9 +23,6 @@ async function request(path, options = {}) {
   return res.json();
 }
 
-
-
-
 // Auth
 export const login = (body) =>
   request('/authentication/login', { method: 'POST', body: JSON.stringify(body) });
@@ -81,7 +78,7 @@ export const extendReservation = (reservationId, userId, newDropoffDate, additio
       additionalHours: additionalHours || null,
     }),
   });
-
+export const getMyProfile = (userId) => request(`/users/${userId}/profile`);
 // Reviews
 export const getAllReviews = (page = 1, pageSize = 10) =>
   request(`/reviews?page=${page}&pageSize=${pageSize}`);
@@ -152,7 +149,7 @@ export const downloadReport = async (type, start, end) => {
   window.URL.revokeObjectURL(url);
 };
 
-// Disputes
+
 export const flagDispute = (reviewId, resolution) =>
   request(`/Disputes/dispute/${reviewId}`, { method: 'POST', body: JSON.stringify({ resolution }) });
 export const resolveDispute = (reviewId, action) =>

@@ -27,7 +27,7 @@ export default function CustomerDashboard() {
   const [typeFilter, setTypeFilter] = useState('All');
   const [cityFilter, setCityFilter] = useState('All');
   const [availFilter, setAvailFilter] = useState('All');
-  const [maxPrice, setMaxPrice] = useState(200);
+  const [maxPrice, setMaxPrice] = useState(10000);
   const [carPage, setCarPage] = useState(1);
   const [carTotalPages, setCarTotalPages] = useState(1);
 
@@ -53,7 +53,10 @@ export default function CustomerDashboard() {
   // Toast
   const [toast, setToast] = useState('');
 
-  function showToast(msg) { setToast(msg); setTimeout(() => setToast(''), 3000); }
+  function showToast(msg) { 
+    setToast(msg);
+    setTimeout(() => setToast(''), 3000); 
+  }
 
   useEffect(() => {
     setCarsLoading(true);
@@ -96,7 +99,10 @@ export default function CustomerDashboard() {
       await cancelBooking(id, userId, false);
       setBookings(b => b.map(r => r.id === id ? { ...r, status: 'cancelled' } : r));
       showToast('Booking cancelled.');
-    } catch (e) { showToast(e.message); }
+    } 
+    catch (e) { 
+    showToast(e.message);
+   }
   }
 
   async function submitReview() {
@@ -150,8 +156,8 @@ export default function CustomerDashboard() {
     b.status === 'completed' && !myReviews.some(r => r.reservationId === b.id)
   );
 
+ 
   const firstInitial = userName ? userName.charAt(0).toUpperCase() : 'U';
-  const email = userName ? userName.toLowerCase().replace(' ', '.') + '@example.com' : '';
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh', fontFamily: 'system-ui, sans-serif' }}>
@@ -221,13 +227,8 @@ export default function CustomerDashboard() {
           )}
 
           {tab === 'profile' && (
-            <ProfileTab
-              userName={userName}
-              firstInitial={firstInitial}
-              email={email}
-              bookings={bookings}
-            />
-          )}
+  <ProfileTab bookings={bookings} />
+)}
         </div>
       </div>
 

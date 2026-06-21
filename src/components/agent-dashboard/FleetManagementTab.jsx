@@ -38,7 +38,7 @@ export default function FleetManagementTab({
               <div className="p-3">
                 <div className="d-flex justify-content-between mb-1">
                   <div className="fw-bold">{car.make} {car.model}</div>
-                  <div className="fw-bold" style={{ color: '#e85d24' }}>${car.pricePerDay}/day</div>
+                  <div className="fw-bold" style={{ color: '#e85d24' }}>₹{car.pricePerDay}/day</div>
                 </div>
                 <div className="mb-3" style={{ color: '#888', fontSize: 12 }}>
                   {car.type} · {car.location} · {car.year}
