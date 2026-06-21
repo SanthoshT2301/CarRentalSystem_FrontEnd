@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getMyProfile } from '../../api/api';
+import { getMyProfile } from '../../services';
 import { useAuth } from '../../context/AuthContext';
 
 export default function ProfileTab({ bookings }) {

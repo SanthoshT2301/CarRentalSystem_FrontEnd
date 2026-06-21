@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getCars, getMyBookings, cancelBooking, addReview, getAllReviews, extendReservation } from '../api/api';
+import { getCars, getMyBookings, cancelBooking, addReview, getAllReviews, extendReservation } from '../services';
 import { useAuth } from '../context/AuthContext';
 
 import Sidebar, { SIDEBAR_WIDTH } from '../components/customer-dashboard/Sidebar';

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { register as apiRegister } from '../api/api';
+import { register as apiRegister } from '../services';
 import { useAuth } from '../context/AuthContext';
 
 const BRAND = '#e85d24';

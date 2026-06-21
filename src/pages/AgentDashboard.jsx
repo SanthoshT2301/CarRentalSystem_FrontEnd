@@ -4,7 +4,7 @@ import {
   getAgentBookings, getAgentCars, createCar, deleteCar, updateCar, returnCar,
   getMaintenanceAlerts, addMaintenanceAlert, updateAlertStatus,
   gateCheckout, gateCheckin,
-} from '../api/api';
+} from '../services';
 import { useAuth } from '../context/AuthContext';
 import '../styles/agent-dashboard.css';
 

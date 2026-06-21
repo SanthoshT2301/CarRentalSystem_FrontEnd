@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getCars } from '../api/api';
+import { getCars } from '../services';
 import CarCard from '../components/CarCard';
 import Footer from '../components/Footer';
 

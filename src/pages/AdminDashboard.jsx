@@ -8,7 +8,7 @@ import {
   downloadReport,
   getAllBookings, getPendingUsers, approveUser,
   getAllUsers, setUserStatus, deleteUser,
-} from '../api/api';
+} from '../services';
 import { useAuth } from '../context/AuthContext';
 import '../styles/dashboard.css';
 

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getAllBookings } from '../../api/api';
+import { getAllBookings } from '../../services';
 import StatusBadge from './StatusBadge';
 
 export default function AllBookingsTab() {

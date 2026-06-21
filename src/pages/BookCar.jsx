@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getCarById, createBooking, validatePromoCode } from '../api/api';
+import { getCarById, createBooking, validatePromoCode } from '../services';
 import { useAuth } from '../context/AuthContext';
 const LOCATIONS = ['Chennai', 'Madurai', 'Coimbatore', 'Trichy'];
 
