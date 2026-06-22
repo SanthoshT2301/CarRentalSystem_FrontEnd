@@ -4,97 +4,84 @@
   --rr-green: #16a34a;
   --rr-blue: #2563eb;
   --rr-red: #dc2626;
+  --sidebar-width: 170px;
 }
 
-/* ── Layout ──────────────────────────────────────────────────────────── */
-.customer-layout {
-  min-height: 100vh;
-  font-family: system-ui, sans-serif;
-}
+.customer-layout { min-height: 100vh; font-family: system-ui, sans-serif; }
 
 .customer-content {
-  margin-left: 170px;
+  margin-left: var(--sidebar-width);
   background: var(--rr-bg);
   min-height: 100vh;
+  transition: margin-left 0.25s ease;
 }
 
 /* ── Sidebar ─────────────────────────────────────────────────────────── */
 .rr-sidebar {
-  width: 170px;
+  width: var(--sidebar-width);
   background: #1a1a1a;
   color: #fff;
   position: fixed;
-  top: 0;
-  left: 0;
-  bottom: 0;
-  z-index: 10;
-}
-
-.rr-sidebar .rr-logo-box {
-  width: 28px;
-  height: 28px;
-  background: var(--rr-orange);
-  border-radius: 6px;
-  font-size: 14px;
+  top: 0; left: 0; bottom: 0;
+  z-index: 1050;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.25s ease;
 }
 
 .rr-avatar {
-  width: 36px;
-  height: 36px;
+  width: 36px; height: 36px;
   background: var(--rr-orange);
   border-radius: 50%;
-  font-weight: 700;
-  font-size: 15px;
-  color: #fff;
-  flex-shrink: 0;
+  font-weight: 700; font-size: 15px; color: #fff; flex-shrink: 0;
 }
-
 .rr-avatar-lg {
-  width: 56px;
-  height: 56px;
+  width: 56px; height: 56px;
   background: var(--rr-orange);
   border-radius: 50%;
-  font-weight: 700;
-  font-size: 24px;
-  color: #fff;
+  font-weight: 700; font-size: 24px; color: #fff;
 }
 
 .rr-nav-btn {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  width: 100%;
-  border: none;
-  cursor: pointer;
-  background: transparent;
-  color: #aaa;
-  font-weight: 400;
-  font-size: 13px;
-  text-align: left;
-  margin-bottom: 2px;
-  transition: all 0.15s;
-  border-radius: 8px;
-  padding: 10px 12px;
+  display: flex; align-items: center; gap: 10px;
+  width: 100%; border: none; cursor: pointer;
+  background: transparent; color: #aaa;
+  font-weight: 400; font-size: 13px; text-align: left;
+  margin-bottom: 2px; transition: all 0.15s;
+  border-radius: 8px; padding: 10px 12px;
 }
-
-.rr-nav-btn.active {
-  background: #e85d2430;
-  color: var(--rr-orange);
-  font-weight: 600;
-}
+.rr-nav-btn.active { background: #e85d2430; color: var(--rr-orange); font-weight: 600; }
 
 .rr-logout-btn {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  width: 100%;
-  border: none;
-  cursor: pointer;
-  background: transparent;
-  color: var(--rr-orange);
-  font-size: 13px;
+  display: flex; align-items: center; gap: 10px;
+  width: 100%; border: none; cursor: pointer;
+  background: transparent; color: var(--rr-orange);
+  font-size: 13px; border-radius: 8px; padding: 10px 12px;
+}
+
+/* Overlay */
+.rr-sidebar-overlay {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 1040; cursor: pointer;
+}
+.rr-sidebar-overlay.visible { display: block; }
+
+/* Hamburger */
+.rr-mobile-toggle {
+  display: none;
+  background: none;
+  border: 1px solid #e0e0e0;
   border-radius: 8px;
-  padding: 10px 12px;
+  width: 38px; height: 38px;
+  font-size: 17px; cursor: pointer;
+  align-items: center; justify-content: center; flex-shrink: 0;
+}
+.rr-sidebar-close {
+  display: none;
+  background: none; border: none;
+  color: #aaa; font-size: 22px; line-height: 1; padding: 0; cursor: pointer;
 }
 
 /* ── Topbar ──────────────────────────────────────────────────────────── */
@@ -102,362 +89,174 @@
   background: #fff;
   border-bottom: 1px solid #e8e8e8;
   padding: 14px 32px;
-  position: sticky;
-  top: 0;
-  z-index: 5;
+  position: sticky; top: 0; z-index: 100;
+  display: flex; align-items: center; justify-content: space-between;
 }
 
 /* ── Cards ───────────────────────────────────────────────────────────── */
 .rr-card {
-  background: #fff;
-  border-radius: 14px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
-}
-
-.rr-car-card {
-  background: #fff;
-  border-radius: 14px;
-  overflow: hidden;
-  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.07);
-  border: 1px solid #eee;
-  transition: box-shadow 0.2s;
-  cursor: pointer;
-}
-
-.rr-car-card:hover {
-  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.13);
-}
-
-.rr-car-card .rr-car-img {
-  height: 160px;
-  overflow: hidden;
-  position: relative;
-}
-
-.rr-car-card .rr-car-img img {
-  transition: transform 0.3s;
-}
-
-.rr-car-card:hover .rr-car-img img {
-  transform: scale(1.04);
+  background: #fff; border-radius: 14px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
 }
 
 /* ── Buttons ─────────────────────────────────────────────────────────── */
-.rr-orange-btn {
-  background: var(--rr-orange);
-  color: #fff;
-  border: none;
-  border-radius: 10px;
-  font-weight: 700;
-}
-
-.rr-orange-btn:hover {
-  background: var(--rr-orange);
-  color: #fff;
-  opacity: 0.92;
-}
-
-.rr-orange-btn:disabled {
-  opacity: 0.7;
-}
-
-.rr-orange-outline-btn {
-  background: #fff;
-  color: var(--rr-orange);
-  border: 1.5px solid var(--rr-orange);
-  border-radius: 8px;
-  font-weight: 600;
-}
-
-.rr-orange-outline-btn:hover {
-  background: #fef3ee;
-  color: var(--rr-orange);
-}
+.rr-orange-btn { background: var(--rr-orange); color: #fff; border: none; border-radius: 10px; font-weight: 700; }
+.rr-orange-btn:hover { background: var(--rr-orange); color: #fff; opacity: 0.92; }
+.rr-orange-btn:disabled { opacity: 0.7; }
 
 /* ── Status badge ────────────────────────────────────────────────────── */
 .rr-status-badge {
-  padding: 3px 12px;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 600;
-  text-transform: capitalize;
+  padding: 3px 12px; border-radius: 20px;
+  font-size: 12px; font-weight: 600;
+  text-transform: capitalize; white-space: nowrap;
 }
-
 .rr-status-badge.status-completed { background: #dcfce7; color: var(--rr-green); }
 .rr-status-badge.status-cancelled { background: #fee2e2; color: var(--rr-red); }
 .rr-status-badge.status-confirmed { background: #dbeafe; color: var(--rr-blue); }
 
-/* ── Price badge ─────────────────────────────────────────────────────── */
-.rr-price-badge {
-  color: var(--rr-orange);
-  font-weight: 700;
-}
-
+/* ── Availability badge ──────────────────────────────────────────────── */
 .rr-availability-badge {
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  color: #fff;
-  font-size: 11px;
-  font-weight: 600;
-  padding: 3px 10px;
-  border-radius: 20px;
+  position: absolute; top: 10px; left: 10px;
+  color: #fff; font-size: 11px; font-weight: 600;
+  padding: 3px 10px; border-radius: 20px;
 }
-
 .rr-availability-badge.available { background: var(--rr-green); }
 .rr-availability-badge.unavailable { background: var(--rr-red); }
 
 /* ── Modal ───────────────────────────────────────────────────────────── */
 .rr-modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.5);
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.5);
   z-index: 999;
+  display: flex; align-items: center; justify-content: center;
+  padding: 16px;
 }
-
 .rr-modal {
-  background: #fff;
-  border-radius: 20px;
-  padding: 36px;
-  width: 440px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+  background: #fff; border-radius: 20px; padding: 36px;
+  width: 440px; max-width: 100%;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.25);
 }
-
-.rr-modal.rr-modal-wide {
-  width: 460px;
-}
+.rr-modal.rr-modal-wide { width: 460px; max-width: 100%; }
 
 /* ── Toast ───────────────────────────────────────────────────────────── */
 .rr-toast {
-  position: fixed;
-  bottom: 28px;
-  right: 28px;
-  background: #1a1a1a;
-  color: #fff;
-  padding: 14px 24px;
-  border-radius: 12px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
-  font-size: 14px;
-  font-weight: 500;
-  z-index: 9999;
+  position: fixed; bottom: 28px; right: 28px;
+  background: #1a1a1a; color: #fff;
+  padding: 14px 24px; border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+  font-size: 14px; font-weight: 500; z-index: 9999;
+  max-width: calc(100vw - 48px);
 }
+
+/* ── Dashboard body ──────────────────────────────────────────────────── */
+.rr-dashboard-body { padding: 28px 32px; }
+
+/* ── Browse layout ───────────────────────────────────────────────────── */
+.rr-browse-layout { display: flex; gap: 24px; }
 
 /* ── Filter panel ────────────────────────────────────────────────────── */
-.rr-filter-panel {
-  width: 200px;
-  flex-shrink: 0;
-}
-
+.rr-filter-panel { width: 200px; flex-shrink: 0; }
 .rr-filter-pill {
-  padding: 4px 10px;
-  border-radius: 20px;
-  border: none;
-  cursor: pointer;
-  font-size: 12px;
-  font-weight: 500;
-  background: #f0f0f0;
-  color: #555;
+  padding: 4px 10px; border-radius: 20px; border: none;
+  cursor: pointer; font-size: 12px; font-weight: 500;
+  background: #f0f0f0; color: #555;
 }
-
-.rr-filter-pill.active {
-  background: var(--rr-orange);
-  color: #fff;
-}
-
+.rr-filter-pill.active { background: var(--rr-orange); color: #fff; }
 .rr-filter-select {
-  width: 100%;
-  padding: 8px 10px;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  font-size: 13px;
-  background: #fff;
-  cursor: pointer;
+  width: 100%; padding: 8px 10px;
+  border: 1px solid #e0e0e0; border-radius: 8px;
+  font-size: 13px; background: #fff; cursor: pointer;
 }
+.rr-range-orange { accent-color: var(--rr-orange); }
 
-.rr-range-orange {
-  accent-color: var(--rr-orange);
-}
+/* ── Car grid ────────────────────────────────────────────────────────── */
+.rr-car-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
 
 /* ── Search box ──────────────────────────────────────────────────────── */
-.rr-search-box {
-  position: relative;
-}
-
+.rr-search-box { position: relative; }
 .rr-search-box .rr-search-icon {
-  position: absolute;
-  left: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #aaa;
-  font-size: 15px;
+  position: absolute; left: 12px; top: 50%;
+  transform: translateY(-50%); color: #aaa; font-size: 15px;
+}
+.rr-search-box input { padding-left: 38px; }
+
+/* ── Reservation card ────────────────────────────────────────────────── */
+.rr-reservation-card { display: flex; align-items: center; gap: 16px; padding: 16px 20px; }
+.rr-reservation-actions {
+  display: flex; gap: 8px; align-items: center;
+  flex-wrap: wrap; justify-content: flex-end;
 }
 
-.rr-search-box input {
-  padding-left: 38px;
-}
-
-/* ── Profile / review cards ──────────────────────────────────────────── */
-.rr-profile-card {
-  max-width: 420px;
-}
-
-.rr-review-card {
-  border-bottom: 1px solid #f5f5f5;
-}
-
-.rr-stars {
-  color: #f59e0b;
-  letter-spacing: 2px;
-  font-size: 15px;
-}
-
-.rr-star-btn {
-  background: none;
-  border: none;
-  font-size: 28px;
-  cursor: pointer;
-  line-height: 1;
-}
-
+/* ── Profile / Review ────────────────────────────────────────────────── */
+.rr-profile-card { max-width: 420px; }
+.rr-review-card { border-bottom: 1px solid #f5f5f5; }
+.rr-stars { color: #f59e0b; letter-spacing: 2px; font-size: 15px; }
+.rr-star-btn { background: none; border: none; font-size: 28px; cursor: pointer; line-height: 1; }
 .rr-star-btn.filled { color: #f59e0b; }
 .rr-star-btn.empty { color: #e0e0e0; }
 
 /* ── Pagination ──────────────────────────────────────────────────────── */
 .rr-pagination-btn {
-  padding: 7px 16px;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  background: #fff;
-  font-size: 13px;
+  padding: 7px 16px; border: 1px solid #e0e0e0;
+  border-radius: 8px; background: #fff; font-size: 13px; cursor: pointer;
 }
+.rr-pagination-btn:disabled { cursor: not-allowed; opacity: 0.4; }
 
-.rr-pagination-btn:disabled {
-  cursor: not-allowed;
-  opacity: 0.4;
-}
-
-/* ── Misc text tokens ────────────────────────────────────────────────── */
+/* ── Misc tokens ─────────────────────────────────────────────────────── */
 .text-rr-orange { color: var(--rr-orange) !important; }
 .text-rr-green  { color: var(--rr-green) !important; }
 .text-rr-blue   { color: var(--rr-blue) !important; }
 .text-rr-red    { color: var(--rr-red) !important; }
 .bg-rr-orange-soft { background: #fef3ee !important; }
 .bg-rr-bg { background: var(--rr-bg) !important; }
-
-.rr-extend-banner {
-  background: #f3e8ff;
-  border: 1px solid #d8b4fe;
-  border-radius: 10px;
-}
-
-.rr-extend-result-box {
-  background: #f0fdf4;
-  border: 1px solid #bbf7d0;
-  border-radius: 12px;
-}
-
-.rr-error-box {
-  background: #fee2e2;
-  border: 1px solid #fca5a5;
-  border-radius: 8px;
-  color: var(--rr-red);
-}
-
-.rr-blockquote {
-  background: #f9f9f9;
-  border-left: 3px solid #e0e0e0;
-  border-radius: 6px;
-}
+.rr-extend-banner { background: #f3e8ff; border: 1px solid #d8b4fe; border-radius: 10px; }
+.rr-extend-result-box { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px; }
+.rr-error-box { background: #fee2e2; border: 1px solid #fca5a5; border-radius: 8px; color: var(--rr-red); }
 
 .fs-13 { font-size: 13px; }
 .fs-12 { font-size: 12px; }
 .fs-11 { font-size: 11px; }
 .fs-22 { font-size: 22px; }
 .fs-40 { font-size: 40px; }
-
 .cursor-pointer { cursor: pointer; }
 
+/* ══════════════════════════════════════════════════════════════════════
+   RESPONSIVE
+   ══════════════════════════════════════════════════════════════════════ */
 
-
-/* ── Responsive: Sidebar becomes off-canvas drawer below 992px ───────── */
-.rr-mobile-toggle { display: none; }
-.rr-sidebar-overlay { display: none; }
-
+/* Tablet ≤991px — sidebar becomes off-canvas drawer */
 @media (max-width: 991.98px) {
-  .rr-sidebar {
-    transform: translateX(-100%);
-    transition: transform 0.25s ease;
-    z-index: 1050;
-    width: 240px;
-  }
-  .rr-sidebar.rr-sidebar-open {
-    transform: translateX(0);
-    box-shadow: 8px 0 24px rgba(0,0,0,0.25);
-  }
-  .customer-content {
-    margin-left: 0;
-  }
-  .rr-mobile-toggle {
-    display: inline-flex;
-  }
-  .rr-sidebar-overlay {
-    display: block;
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.45);
-    z-index: 1040;
-  }
+  .rr-sidebar { transform: translateX(-100%); width: 250px; }
+  .rr-sidebar.rr-sidebar-open { transform: translateX(0); box-shadow: 8px 0 32px rgba(0,0,0,0.3); }
+  .customer-content { margin-left: 0 !important; }
+  .rr-mobile-toggle { display: inline-flex; }
+  .rr-sidebar-close { display: block; }
+  .rr-car-grid { grid-template-columns: repeat(2, 1fr); }
+  .rr-dashboard-body { padding: 20px; }
 }
 
-/* ── Topbar wraps on small screens ────────────────────────────────────── */
-@media (max-width: 575.98px) {
-  .rr-topbar {
-    flex-direction: column;
-    align-items: flex-start !important;
-    gap: 6px;
-    padding: 12px 16px;
-  }
-}
-
-/* ── Browse filter panel: stack above grid on tablets/phones ───────────── */
+/* Large phones ≤767px — filter stacks above grid */
 @media (max-width: 767.98px) {
-  .rr-browse-layout {
-    flex-direction: column !important;
-  }
-  .rr-filter-panel {
-    width: 100% !important;
-  }
+  .rr-browse-layout { flex-direction: column; gap: 16px; }
+  .rr-filter-panel { width: 100% !important; }
+  .rr-car-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  .rr-topbar { padding: 12px 16px; }
+  .rr-dashboard-body { padding: 16px; }
+  .rr-toast { bottom: 16px; right: 16px; left: 16px; max-width: none; text-align: center; }
+  .rr-profile-card { max-width: 100%; }
 }
 
-/* ── Car grid collapses gracefully ──────────────────────────────────────── */
-@media (max-width: 991.98px) {
-  .rr-car-grid { grid-template-columns: repeat(2, 1fr) !important; }
-}
+/* Small phones ≤575px — single column */
 @media (max-width: 575.98px) {
-  .rr-car-grid { grid-template-columns: 1fr !important; }
-}
-
-/* ── Modals shrink on small screens ─────────────────────────────────────── */
-@media (max-width: 575.98px) {
-  .rr-modal {
-    width: 92vw !important;
-    padding: 24px !important;
-  }
-}
-
-/* ── Reservation cards stack on phones ──────────────────────────────────── */
-@media (max-width: 575.98px) {
-  .rr-reservation-card {
-    flex-direction: column;
-    align-items: flex-start !important;
-  }
-  .rr-reservation-card .rr-reservation-actions {
-    width: 100%;
-    justify-content: flex-start !important;
-  }
-}
-
-/* ── Content padding shrinks on phones ──────────────────────────────────── */
-@media (max-width: 575.98px) {
-  .rr-dashboard-body { padding: 16px !important; }
+  .rr-car-grid { grid-template-columns: 1fr; gap: 12px; }
+  .rr-topbar { flex-wrap: wrap; gap: 6px; padding: 12px 14px; }
+  .rr-topbar-date { display: none; }
+  .rr-dashboard-body { padding: 12px; }
+  .rr-modal { padding: 24px 20px; border-radius: 16px; }
+  .rr-reservation-card { flex-direction: column; align-items: flex-start; padding: 16px; gap: 12px; }
+  .rr-reservation-actions { width: 100%; justify-content: flex-start; }
+  .rr-sidebar { width: 85vw; max-width: 280px; }
+  .rr-star-btn { font-size: 24px; }
+  .fs-22 { font-size: 18px; }
+  .rr-pagination-btn { padding: 6px 12px; font-size: 12px; }
 }

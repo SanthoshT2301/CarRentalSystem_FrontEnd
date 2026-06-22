@@ -5,21 +5,23 @@ export default function TopBar({ tab, userName, today, onMenuClick }) {
     tab === 'reviews' ? 'Reviews' : 'Profile';
 
   return (
-    <div className="rr-topbar d-flex justify-content-between align-items-center">
-      <div className="d-flex align-items-center gap-2">
+    <div className="rr-topbar">
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        {/* Hamburger — hidden on desktop, shown on mobile via CSS */}
         <button
           onClick={onMenuClick}
           className="rr-mobile-toggle"
-          style={{ background: 'none', border: '1px solid #e0e0e0', borderRadius: 8, width: 36, height: 36, fontSize: 16, alignItems: 'center', justifyContent: 'center' }}
+          aria-label="Open menu"
         >
           ☰
         </button>
         <div>
-          <div className="fw-bold fs-5">{title}</div>
-          <div className="text-secondary fs-13">Welcome back, {userName}</div>
+          <div style={{ fontWeight: 700, fontSize: 18 }}>{title}</div>
+          <div style={{ color: '#888', fontSize: 13 }}>Welcome back, {userName}</div>
         </div>
       </div>
-      <div className="text-secondary fs-13">{today}</div>
+      {/* Hide date on very small screens via CSS class */}
+      <div className="rr-topbar-date" style={{ color: '#888', fontSize: 13 }}>{today}</div>
     </div>
   );
 }

@@ -11,7 +11,7 @@ export default function BookCar() {
   const [car, setCar] = useState(null);
   const [mode, setMode] = useState('daily'); // 'daily' | 'hourly'
   const [form, setForm] = useState({
-    pickupLocation: 'San Francisco', dropoffLocation: 'San Francisco',
+    pickupLocation: '-', dropoffLocation: '-',
     pickupDate: '', dropoffDate: '', pickupTime: '09:00', durationHours: 2,
     paymentMethodId: 1, cardNumber: '', expiryDate: '', cvv: '', payPalEmail: '',
     address: '',

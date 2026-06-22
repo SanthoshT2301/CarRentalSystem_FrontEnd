@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getCars, getMyBookings, cancelBooking, addReview, getAllReviews, extendReservation } from '../services';
 import { useAuth } from '../context/AuthContext';
@@ -12,13 +12,17 @@ import ProfileTab from '../components/customer-dashboard/ProfileTab';
 import ExtendReservationModal from '../components/customer-dashboard/ExtendReservationModal';
 import ReviewModal from '../components/customer-dashboard/ReviewModal';
 import Toast from '../components/customer-dashboard/Toast';
+import '../styles/customer-dashboard.css';
 
-const today = new Date().toLocaleDateString('en-US', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' });
+const today = new Date().toLocaleDateString('en-US', {
+  weekday: 'short', year: 'numeric', month: 'short', day: 'numeric',
+});
 
 export default function CustomerDashboard() {
-  const { userId, userName, role, logout } = useAuth();
+  const { userId, userName, logout } = useAuth();
   const navigate = useNavigate();
   const [tab, setTab] = useState('browse');
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   // Browse Cars state
   const [cars, setCars] = useState([]);
@@ -50,33 +54,25 @@ export default function CustomerDashboard() {
   const [extendResult, setExtendResult] = useState(null);
   const [extendError, setExtendError] = useState('');
 
-  // Toast
   const [toast, setToast] = useState('');
-
-  function showToast(msg) { 
-    setToast(msg);
-    setTimeout(() => setToast(''), 3000); 
-  }
+  function showToast(msg) { setToast(msg); setTimeout(() => setToast(''), 3000); }
 
   useEffect(() => {
     setCarsLoading(true);
-    getCars(carPage, 9).then(r => {
-      setCars(r.data || []);
-      setCarTotalPages(r.totalPages || 1);
-    }).finally(() => setCarsLoading(false));
+    getCars(carPage, 9)
+      .then(r => { setCars(r.data || []); setCarTotalPages(r.totalPages || 1); })
+      .finally(() => setCarsLoading(false));
   }, [carPage]);
 
   useEffect(() => {
-    getMyBookings(userId, bookPage, 10).then(r => {
-      setBookings(r.data || []);
-      setBookTotalPages(r.totalPages || 1);
-    }).catch(() => {});
+    getMyBookings(userId, bookPage, 10)
+      .then(r => { setBookings(r.data || []); setBookTotalPages(r.totalPages || 1); })
+      .catch(() => {});
   }, [bookPage]);
 
   useEffect(() => {
     getAllReviews(1, 50).then(r => {
-      const mine = (r.data || []).filter(rv => String(rv.userId) === String(userId));
-      setMyReviews(mine);
+      setMyReviews((r.data || []).filter(rv => String(rv.userId) === String(userId)));
     }).catch(() => {});
   }, []);
 
@@ -99,10 +95,7 @@ export default function CustomerDashboard() {
       await cancelBooking(id, userId, false);
       setBookings(b => b.map(r => r.id === id ? { ...r, status: 'cancelled' } : r));
       showToast('Booking cancelled.');
-    } 
-    catch (e) { 
-    showToast(e.message);
-   }
+    } catch (e) { showToast(e.message); }
   }
 
   async function submitReview() {
@@ -115,20 +108,15 @@ export default function CustomerDashboard() {
   }
 
   function openExtendModal(booking) {
-    const currentDrop = new Date(booking.dropoffDate);
-    currentDrop.setDate(currentDrop.getDate() + 1);
-    const defaultDate = currentDrop.toISOString().split('T')[0];
-    setExtendDate(defaultDate);
-    setExtendError('');
-    setExtendResult(null);
-    setExtendModal(booking);
+    const d = new Date(booking.dropoffDate);
+    d.setDate(d.getDate() + 1);
+    setExtendDate(d.toISOString().split('T')[0]);
+    setExtendError(''); setExtendResult(null); setExtendModal(booking);
   }
 
   async function handleExtend() {
     if (!extendDate) { setExtendError('Please select a new drop-off date.'); return; }
-    setExtendLoading(true);
-    setExtendError('');
-    setExtendResult(null);
+    setExtendLoading(true); setExtendError(''); setExtendResult(null);
     try {
       const result = await extendReservation(extendModal.id, userId, extendDate);
       setExtendResult(result);
@@ -137,26 +125,19 @@ export default function CustomerDashboard() {
           ? { ...b, dropoffDate: result.newDropoffDate, totalAmount: result.newTotalAmount, isExtended: true }
           : b
       ));
-    } catch (e) {
-      setExtendError(e.message);
-    } finally {
-      setExtendLoading(false);
-    }
+    } catch (e) { setExtendError(e.message); }
+    finally { setExtendLoading(false); }
   }
 
   function closeExtendModal() {
     if (extendResult) showToast('Reservation extended successfully!');
-    setExtendModal(null);
-    setExtendResult(null);
-    setExtendError('');
-    setExtendDate('');
+    setExtendModal(null); setExtendResult(null); setExtendError(''); setExtendDate('');
   }
 
   const completedWithoutReview = bookings.filter(b =>
     b.status === 'completed' && !myReviews.some(r => r.reservationId === b.id)
   );
 
- 
   const firstInitial = userName ? userName.charAt(0).toUpperCase() : 'U';
 
   return (
@@ -167,94 +148,72 @@ export default function CustomerDashboard() {
         userName={userName}
         firstInitial={firstInitial}
         onLogout={() => { logout(); navigate('/'); }}
+        mobileOpen={mobileOpen}
+        closeMobile={() => setMobileOpen(false)}
       />
 
-      <div style={{ marginLeft: SIDEBAR_WIDTH, flex: 1, background: '#f1f0ea', minHeight: '100vh' }}>
-        <TopBar tab={tab} userName={userName} today={today} />
+      <div className="customer-content" style={{ flex: 1, background: '#f1f0ea', minHeight: '100vh' }}>
+        <TopBar
+          tab={tab}
+          userName={userName}
+          today={today}
+          onMenuClick={() => setMobileOpen(true)}
+        />
 
-        <div style={{ padding: '28px 32px' }}>
-
+        <div className="rr-dashboard-body">
           {tab === 'browse' && (
             <BrowseCarsTab
-              cars={cars}
-              carsLoading={carsLoading}
-              carSearch={carSearch}
-              setCarSearch={setCarSearch}
-              typeFilter={typeFilter}
-              setTypeFilter={setTypeFilter}
-              cityFilter={cityFilter}
-              setCityFilter={setCityFilter}
-              availFilter={availFilter}
-              setAvailFilter={setAvailFilter}
-              maxPrice={maxPrice}
-              setMaxPrice={setMaxPrice}
-              carPage={carPage}
-              setCarPage={setCarPage}
+              cars={cars} carsLoading={carsLoading}
+              carSearch={carSearch} setCarSearch={setCarSearch}
+              typeFilter={typeFilter} setTypeFilter={setTypeFilter}
+              cityFilter={cityFilter} setCityFilter={setCityFilter}
+              availFilter={availFilter} setAvailFilter={setAvailFilter}
+              maxPrice={maxPrice} setMaxPrice={setMaxPrice}
+              carPage={carPage} setCarPage={setCarPage}
               carTotalPages={carTotalPages}
               filteredCars={filteredCars}
-              CITIES={CITIES}
-              TYPES={TYPES}
+              CITIES={CITIES} TYPES={TYPES}
               navigate={navigate}
             />
           )}
 
           {tab === 'reservations' && (
             <ReservationsTab
-              bookings={bookings}
-              setTab={setTab}
-              handleCancel={handleCancel}
-              openExtendModal={openExtendModal}
+              bookings={bookings} setTab={setTab}
+              handleCancel={handleCancel} openExtendModal={openExtendModal}
               myReviews={myReviews}
-              setReviewModal={setReviewModal}
-              setReviewRating={setReviewRating}
-              setReviewComment={setReviewComment}
-              setReviewMsg={setReviewMsg}
-              bookPage={bookPage}
-              setBookPage={setBookPage}
-              bookTotalPages={bookTotalPages}
+              setReviewModal={setReviewModal} setReviewRating={setReviewRating}
+              setReviewComment={setReviewComment} setReviewMsg={setReviewMsg}
+              bookPage={bookPage} setBookPage={setBookPage} bookTotalPages={bookTotalPages}
             />
           )}
 
           {tab === 'reviews' && (
             <ReviewsTab
               completedWithoutReview={completedWithoutReview}
-              setReviewModal={setReviewModal}
-              setReviewRating={setReviewRating}
-              setReviewComment={setReviewComment}
-              setReviewMsg={setReviewMsg}
+              setReviewModal={setReviewModal} setReviewRating={setReviewRating}
+              setReviewComment={setReviewComment} setReviewMsg={setReviewMsg}
               myReviews={myReviews}
             />
           )}
 
-          {tab === 'profile' && (
-  <ProfileTab bookings={bookings} />
-)}
+          {tab === 'profile' && <ProfileTab bookings={bookings} />}
         </div>
       </div>
 
       <ExtendReservationModal
-        extendModal={extendModal}
-        extendDate={extendDate}
-        setExtendDate={setExtendDate}
-        extendError={extendError}
-        setExtendError={setExtendError}
-        extendLoading={extendLoading}
-        extendResult={extendResult}
-        handleExtend={handleExtend}
+        extendModal={extendModal} extendDate={extendDate}
+        setExtendDate={setExtendDate} extendError={extendError}
+        setExtendError={setExtendError} extendLoading={extendLoading}
+        extendResult={extendResult} handleExtend={handleExtend}
         closeExtendModal={closeExtendModal}
       />
-
       <ReviewModal
-        reviewModal={reviewModal}
-        setReviewModal={setReviewModal}
-        reviewRating={reviewRating}
-        setReviewRating={setReviewRating}
-        reviewComment={reviewComment}
-        setReviewComment={setReviewComment}
-        reviewMsg={reviewMsg}
-        submitReview={submitReview}
+        reviewModal={reviewModal} setReviewModal={setReviewModal}
+        reviewRating={reviewRating} setReviewRating={setReviewRating}
+        reviewComment={reviewComment} setReviewComment={setReviewComment}
+        reviewMsg={reviewMsg} submitReview={submitReview}
       />
-
       <Toast toast={toast} />
     </div>
   );
