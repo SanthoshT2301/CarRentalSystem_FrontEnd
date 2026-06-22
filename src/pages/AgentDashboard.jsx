@@ -53,6 +53,7 @@ export default function AgentDashboard() {
   const navigate = useNavigate();
   const [tab, setTab] = useState('bookings');
   const [toast, setToast] = useState('');
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   // ── data ─────────────────────────────────────────────────────────────────
   const [bookings,  setBookings]  = useState([]);
@@ -74,6 +75,11 @@ export default function AgentDashboard() {
   const [editErr,   setEditErr]   = useState('');
 
   function flash(msg) { setToast(msg); setTimeout(() => setToast(''), 3500); }
+
+  function handleTabChange(newTab) {
+    setTab(newTab);
+    setMobileOpen(false);
+  }
 
   // ── initial loads ─────────────────────────────────────────────────────────
   useEffect(() => {
@@ -252,9 +258,11 @@ export default function AgentDashboard() {
     <div className="d-flex" style={{ minHeight: '100vh' }}>
       <AgentSidebar
         tab={tab}
-        setTab={setTab}
+        setTab={handleTabChange}
         userName={userName}
         onLogout={() => { logout(); navigate('/'); }}
+        mobileOpen={mobileOpen}
+        onClose={() => setMobileOpen(false)}
       />
 
       <div className="rr-content flex-grow-1" style={{ minHeight: '100vh' }}>
@@ -263,9 +271,10 @@ export default function AgentDashboard() {
           userName={userName}
           myCarsCount={myCars.length}
           bookingsCount={bookings.length}
+          onMenuOpen={() => setMobileOpen(true)}
         />
 
-        <div className="p-4" style={{ padding: '28px 32px' }}>
+        <div className="rr-agent-body">
           {tab === 'bookings' && (
             <MyBookingsTab bookings={bookings} doReturn={doReturn} />
           )}

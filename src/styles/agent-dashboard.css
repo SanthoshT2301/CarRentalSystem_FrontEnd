@@ -79,6 +79,9 @@
   transition: margin-left 0.25s ease;
 }
 
+/* ── Dashboard body (replaces old inline padding: '28px 32px') ─────────────── */
+.rr-agent-body { padding: 28px 32px; }
+
 /* ── Topbar ───────────────────────────────────────────────────────────────── */
 .rr-topbar {
   background: #fff;
@@ -321,6 +324,8 @@
 @media (max-width: 767.98px) {
   .rr-topbar { padding: 10px 16px; }
 
+  .rr-agent-body { padding: 16px; }
+
   .rr-fleet-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
 
   /* Bookings table: stack actions */
@@ -344,6 +349,8 @@
 /* Small phones ≤575px */
 @media (max-width: 575.98px) {
   .rr-fleet-grid { grid-template-columns: 1fr; }
+
+  .rr-agent-body { padding: 12px; }
 
   .rr-topbar { flex-wrap: wrap; gap: 8px; }
 

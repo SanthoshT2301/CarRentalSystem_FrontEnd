@@ -3,15 +3,15 @@ const PRIORITY_CLR = { High: '#dc2626', Medium: '#d97706', Low: '#16a34a' };
 export default function MaintenanceTab({ alerts, setMaintModal, changeStatus }) {
   return (
     <div>
-      <div className="d-flex justify-content-between align-items-center mb-4">
+      <div className="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
         <div className="fw-bold" style={{ fontSize: 22 }}>Maintenance Alerts</div>
         <button onClick={() => setMaintModal(true)} className="btn rr-orange-btn">+ Report Alert</button>
       </div>
       <div className="d-flex flex-column gap-3">
         {alerts.map(a => (
-          <div key={a.maintenanceAlertId} className="rr-card p-3 d-flex justify-content-between align-items-center">
+          <div key={a.maintenanceAlertId} className="rr-card p-3 rr-maint-card">
             <div>
-              <div className="d-flex gap-2 align-items-center mb-1">
+              <div className="d-flex gap-2 align-items-center mb-1 flex-wrap">
                 <p className="fw-bold m-0">{a.carName}</p>
                 <span
                   className="rr-priority-badge"
@@ -24,7 +24,7 @@ export default function MaintenanceTab({ alerts, setMaintModal, changeStatus }) 
                 Reported by {a.reportedBy} · {new Date(a.createdAt).toLocaleDateString()}
               </p>
             </div>
-            <div className="d-flex align-items-center gap-2">
+            <div className="rr-maint-actions">
               <span
                 className={`badge ${
                   a.status === 'Fixed' ? 'bg-success'
