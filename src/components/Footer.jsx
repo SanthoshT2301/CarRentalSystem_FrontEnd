@@ -15,7 +15,7 @@ export default function Footer() {
         <div className="row g-4 mb-5">
 
           {/* Brand */}
-          <div className="col-lg-5 col-md-6">
+          <div className="col-12 col-md-6 col-lg-5">
             <div className="d-flex align-items-center gap-2 mb-3">
               <div
                 className="d-flex align-items-center justify-content-center rounded"
@@ -41,7 +41,7 @@ export default function Footer() {
           </div>
 
           {/* Services */}
-          <div className="col-lg-2 col-md-6">
+          <div className="col-6 col-md-6 col-lg-2">
             <h6
               className="fw-semibold mb-3"
               style={{
@@ -71,7 +71,7 @@ export default function Footer() {
           </div>
 
           {/* Cities */}
-          <div className="col-lg-2 col-md-6">
+          <div className="col-6 col-md-6 col-lg-2">
             <h6
               className="fw-semibold mb-3"
               style={{
@@ -98,7 +98,7 @@ export default function Footer() {
           </div>
 
           {/* Company */}
-          <div className="col-lg-3 col-md-6">
+          <div className="col-6 col-md-6 col-lg-3">
             <h6
               className="fw-semibold mb-3"
               style={{

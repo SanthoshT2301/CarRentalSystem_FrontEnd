@@ -24,7 +24,7 @@ export default function CarCard({ car }) {
             />
 
             <div className="card-body">
-                <div className="d-flex justify-content-between">
+                <div className="d-flex justify-content-between flex-wrap gap-2">
                     <div>
                         <h5 className="card-title">
                             {car.make} {car.model}
@@ -35,7 +35,7 @@ export default function CarCard({ car }) {
                         </p>
                     </div>
 
-                    <h5 className="text-warning">
+                    <h5 className="text-warning mb-0">
                         ₹{car.pricePerDay}/day
                     </h5>
                 </div>
