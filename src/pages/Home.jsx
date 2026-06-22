@@ -27,28 +27,28 @@ export default function Home() {
   );
 
   return (
-    <div className="bg-white" style={{ minHeight: '100vh' }}>
+    <div className="bg-white" style={{ minHeight: '100vh', overflowX: 'hidden' }}>
       {/* Hero */}
-      <div style={{ background: '#111', padding: '120px 24px 90px' }}>
+      <div style={{ background: '#111', padding: 'clamp(60px, 12vw, 120px) 20px clamp(50px, 9vw, 90px)' }}>
         <div className="mx-auto text-center" style={{ maxWidth: 680 }}>
           <span
             className="d-inline-block fw-semibold mb-3"
-            style={{ color: BRAND, fontSize: 12, letterSpacing: 2 }}
+            style={{ color: BRAND, fontSize: 'clamp(11px, 2vw, 12px)', letterSpacing: 2 }}
           >
             AFFORDABLE CAR RENTALS
           </span>
 
-          <h1 className="text-white fw-bold mb-3" style={{ fontSize: 52, lineHeight: 1.15 }}>
+          <h1 className="text-white fw-bold mb-3" style={{ fontSize: 'clamp(32px, 7vw, 52px)', lineHeight: 1.15 }}>
             Rent a car, your way.
           </h1>
 
-          <p className="mb-5 mx-auto" style={{ color: '#999', fontSize: 16, lineHeight: 1.7, maxWidth: 480 }}>
+          <p className="mb-4 mb-md-5 mx-auto px-2" style={{ color: '#999', fontSize: 'clamp(14px, 2.5vw, 16px)', lineHeight: 1.7, maxWidth: 480 }}>
             Hourly or daily — choose from our modern fleet at unbeatable prices,
             with pickup and drop in major cities across the US.
           </p>
 
           {/* Search box */}
-          <div className="d-flex gap-2 mx-auto" style={{ maxWidth: 480 }}>
+          <div className="d-flex flex-column flex-sm-row gap-2 mx-auto px-2" style={{ maxWidth: 480 }}>
             <input
               value={search}
               onChange={e => setSearch(e.target.value)}
@@ -65,17 +65,17 @@ export default function Home() {
             <button
               onClick={() => document.getElementById('fleet')?.scrollIntoView({ behavior: 'smooth' })}
               className="btn fw-semibold text-white text-nowrap"
-              style={{ background: BRAND, fontSize: 14, padding: '0 24px' }}
+              style={{ background: BRAND, fontSize: 14, padding: '12px 24px' }}
             >
               Search
             </button>
           </div>
 
           {/* Stats */}
-          <div className="d-flex justify-content-center gap-5 mt-5 pt-2">
+          <div className="d-flex flex-wrap justify-content-center gap-4 gap-sm-5 mt-4 mt-md-5 pt-2">
             {[['500+', 'Cars'], ['4', 'Cities'], ['₹70/hr', 'From'], ['4.9★', 'Rating']].map(([v, l]) => (
-              <div key={l} className="text-center">
-                <p className="text-white fw-bold mb-0" style={{ fontSize: 20 }}>{v}</p>
+              <div key={l} className="text-center" style={{ minWidth: 64 }}>
+                <p className="text-white fw-bold mb-0" style={{ fontSize: 'clamp(16px, 3vw, 20px)' }}>{v}</p>
                 <p className="mb-0" style={{ color: '#777', fontSize: 12, marginTop: 2 }}>{l}</p>
               </div>
             ))}
@@ -84,11 +84,11 @@ export default function Home() {
       </div>
 
       {/* Services */}
-      <div id="services" style={{ padding: '90px 24px', background: '#fff' }}>
+      <div id="services" style={{ padding: 'clamp(50px, 9vw, 90px) 20px' }}>
         <div className="mx-auto" style={{ maxWidth: 1040 }}>
-          <div className="text-center mb-5">
+          <div className="text-center mb-4 mb-md-5">
             <p className="fw-semibold mb-2" style={{ color: BRAND, fontSize: 12, letterSpacing: 2 }}>OUR SERVICES</p>
-            <h2 className="fw-bold mb-0" style={{ fontSize: 32, color: '#111' }}>Rentals built around you</h2>
+            <h2 className="fw-bold mb-0" style={{ fontSize: 'clamp(24px, 4.5vw, 32px)', color: '#111' }}>Rentals built around you</h2>
           </div>
           <div className="row g-4">
             {[
@@ -96,7 +96,7 @@ export default function Home() {
               { title: 'Daily Rental', sub: 'From ₹1000 / day', icon: '📅', desc: 'Road trips, business travel, or weekend getaways with unlimited mileage.' },
               { title: 'Corporate Plans', sub: 'Custom pricing', icon: '👥', desc: 'Managed fleet solutions for businesses with priority support and billing.' },
             ].map(s => (
-              <div key={s.title} className="col-md-4">
+              <div key={s.title} className="col-12 col-md-4">
                 <div className="h-100 rounded-3 p-4" style={{ border: '1px solid #eee' }}>
                   <div
                     className="d-flex align-items-center justify-content-center rounded-3 mb-3"
@@ -115,11 +115,11 @@ export default function Home() {
       </div>
 
       {/* Cities */}
-      <div id="cities" style={{ padding: '90px 24px', background: '#fafafa' }}>
+      <div id="cities" style={{ padding: 'clamp(50px, 9vw, 90px) 20px', background: '#fafafa' }}>
         <div className="mx-auto" style={{ maxWidth: 1040 }}>
-          <div className="text-center mb-5">
+          <div className="text-center mb-4 mb-md-5">
             <p className="fw-semibold mb-2" style={{ color: BRAND, fontSize: 12, letterSpacing: 2 }}>AVAILABLE LOCATIONS</p>
-            <h2 className="fw-bold mb-0" style={{ fontSize: 32, color: '#111' }}>Pickup &amp; drop across 4 cities</h2>
+            <h2 className="fw-bold mb-0" style={{ fontSize: 'clamp(24px, 4.5vw, 32px)', color: '#111' }}>Pickup &amp; drop across 4 cities</h2>
           </div>
           <div className="row g-3">
             {[
@@ -129,7 +129,7 @@ export default function Home() {
               { code: 'TPJ', name: 'Trichy', points: 7 },
             ].map(c => (
               <div key={c.name} className="col-6 col-md-3">
-                <div className="rounded-3 p-4 bg-white h-100" style={{ border: '1px solid #eee' }}>
+                <div className="rounded-3 p-3 p-md-4 bg-white h-100" style={{ border: '1px solid #eee' }}>
                   <span
                     className="d-inline-block fw-bold text-white rounded mb-3"
                     style={{ background: BRAND, fontSize: 10, padding: '3px 8px' }}
@@ -146,11 +146,11 @@ export default function Home() {
       </div>
 
       {/* About / Why RoadReady */}
-      <div id="about" style={{ padding: '90px 24px', background: '#fff' }}>
+      <div id="about" style={{ padding: 'clamp(50px, 9vw, 90px) 20px' }}>
         <div className="mx-auto" style={{ maxWidth: 1040 }}>
-          <div className="text-center mb-5">
+          <div className="text-center mb-4 mb-md-5">
             <p className="fw-semibold mb-2" style={{ color: BRAND, fontSize: 12, letterSpacing: 2 }}>WHY ROADREADY</p>
-            <h2 className="fw-bold mb-0" style={{ fontSize: 32, color: '#111' }}>Designed to be user-friendly</h2>
+            <h2 className="fw-bold mb-0" style={{ fontSize: 'clamp(24px, 4.5vw, 32px)', color: '#111' }}>Designed to be user-friendly</h2>
           </div>
           <div className="row g-4">
             {[
@@ -161,7 +161,7 @@ export default function Home() {
               { icon: '📞', title: '24/7 Support', desc: 'Our team is always on standby — call, chat, or email anytime.' },
               { icon: '↩', title: 'Free Cancellation', desc: 'Cancel up to 2 hours before pickup for a full refund.' },
             ].map(f => (
-              <div key={f.title} className="col-md-4">
+              <div key={f.title} className="col-12 col-sm-6 col-md-4">
                 <div className="d-flex gap-3">
                   <div
                     className="d-flex align-items-center justify-content-center rounded-3 flex-shrink-0"
@@ -181,19 +181,19 @@ export default function Home() {
       </div>
 
       {/* Fleet */}
-      <div id="fleet" style={{ padding: '90px 24px', background: '#fafafa' }}>
+      <div id="fleet" style={{ padding: 'clamp(50px, 9vw, 90px) 20px', background: '#fafafa' }}>
         <div className="mx-auto" style={{ maxWidth: 1180 }}>
-          <div className="d-flex justify-content-between align-items-center mb-5 flex-wrap gap-3">
+          <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 mb-md-5 gap-3">
             <div>
               <p className="fw-semibold mb-2" style={{ color: BRAND, fontSize: 12, letterSpacing: 2 }}>OUR FLEET</p>
-              <h2 className="fw-bold mb-0" style={{ fontSize: 28, color: '#111' }}>Browse available cars</h2>
+              <h2 className="fw-bold mb-0" style={{ fontSize: 'clamp(22px, 4vw, 28px)', color: '#111' }}>Browse available cars</h2>
             </div>
             <input
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder="Search by brand, model, city..."
               className="form-control"
-              style={{ width: 260, border: '1px solid #ddd' }}
+              style={{ width: '100%', maxWidth: 260, border: '1px solid #ddd' }}
             />
           </div>
 
@@ -202,7 +202,7 @@ export default function Home() {
           ) : filtered.length === 0 ? (
             <div className="text-center py-5" style={{ color: '#aaa' }}>No cars found.</div>
           ) : (
-            <div className="row g-4">
+            <div className="row g-3 g-md-4">
               {filtered.map(car => (
                 <div key={car.id} className="col-12 col-sm-6 col-lg-4 col-xl-3">
                   <CarCard car={car} />
@@ -212,7 +212,7 @@ export default function Home() {
           )}
 
           {!search && totalPages > 1 && (
-            <div className="d-flex justify-content-center gap-2 mt-5 flex-wrap">
+            <div className="d-flex justify-content-center gap-2 mt-4 mt-md-5 flex-wrap">
               <button
                 onClick={() => setPage(p => Math.max(1, p - 1))}
                 disabled={page === 1}
@@ -245,27 +245,27 @@ export default function Home() {
       </div>
 
       {/* CTA */}
-      <div className="text-center" style={{ background: '#111', padding: '90px 24px' }}>
+      <div className="text-center" style={{ background: '#111', padding: 'clamp(50px, 9vw, 90px) 20px' }}>
         <p className="fw-semibold mb-3" style={{ color: BRAND, fontSize: 12, letterSpacing: 2 }}>GET STARTED TODAY</p>
-        <h2 className="text-white fw-bold mb-3" style={{ fontSize: 36, lineHeight: 1.2 }}>
+        <h2 className="text-white fw-bold mb-3" style={{ fontSize: 'clamp(26px, 5vw, 36px)', lineHeight: 1.2 }}>
           Your next adventure is one click away
         </h2>
-        <p className="mx-auto mb-5" style={{ color: '#888', fontSize: 15, maxWidth: 440 }}>
+        <p className="mx-auto mb-4 mb-md-5 px-2" style={{ color: '#888', fontSize: 15, maxWidth: 440 }}>
           Join thousands of happy drivers who trust RoadReady for every trip.
           Create your free account in seconds.
         </p>
-        <div className="d-flex justify-content-center gap-3 flex-wrap">
+        <div className="d-flex justify-content-center gap-3 flex-wrap px-2">
           <button
             onClick={() => navigate('/register')}
             className="btn fw-semibold text-white"
-            style={{ background: BRAND, padding: '12px 28px', borderRadius: 8, fontSize: 14 }}
+            style={{ background: BRAND, padding: '12px 28px', borderRadius: 8, fontSize: 14, minWidth: 160 }}
           >
             Create Free Account
           </button>
           <button
             onClick={() => navigate('/login')}
             className="btn fw-semibold text-white"
-            style={{ background: 'transparent', border: '1px solid #333', padding: '12px 28px', borderRadius: 8, fontSize: 14 }}
+            style={{ background: 'transparent', border: '1px solid #333', padding: '12px 28px', borderRadius: 8, fontSize: 14, minWidth: 160 }}
           >
             Sign In
           </button>
