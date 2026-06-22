@@ -4,7 +4,7 @@ export default function FleetManagementTab({
 }) {
   return (
     <div>
-      <div className="d-flex justify-content-between align-items-center mb-4">
+      <div className="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
         <div>
           <div className="fw-bold" style={{ fontSize: 22 }}>My Fleet</div>
           <div style={{ color: '#888', fontSize: 13, marginTop: 2 }}>Cars you've added to the system</div>
@@ -16,7 +16,7 @@ export default function FleetManagementTab({
         </button>
       </div>
 
-      <div className="d-grid gap-3" style={{ gridTemplateColumns: 'repeat(3, 1fr)', display: 'grid' }}>
+      <div className="rr-fleet-grid">
         {myCars.map(car => {
           const carBookingsCount = bookings.filter(b => b.carId === car.id).length;
           return (
@@ -36,7 +36,7 @@ export default function FleetManagementTab({
                 </span>
               </div>
               <div className="p-3">
-                <div className="d-flex justify-content-between mb-1">
+                <div className="d-flex justify-content-between mb-1 flex-wrap gap-1">
                   <div className="fw-bold">{car.make} {car.model}</div>
                   <div className="fw-bold" style={{ color: '#e85d24' }}>₹{car.pricePerDay}/day</div>
                 </div>

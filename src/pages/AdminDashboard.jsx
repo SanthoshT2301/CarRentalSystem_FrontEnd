@@ -33,9 +33,11 @@ export default function AdminDashboard() {
   const navigate = useNavigate();
   const [tab, setTab] = useState('overview');
   const [toast, setToast] = useState({ msg: '', type: 'success' });
-const [allUsers, setAllUsers] = useState([]);
-const [userSearch, setUserSearch] = useState('');
-const [roleFilter, setRoleFilter] = useState('All');
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  const [allUsers, setAllUsers] = useState([]);
+  const [userSearch, setUserSearch] = useState('');
+  const [roleFilter, setRoleFilter] = useState('All');
   const [stats, setStats]       = useState(null);
   const [recentBooks, setRecentBooks] = useState([]);
   const [pendingUsers, setPendingUsers] = useState([]);
@@ -57,6 +59,11 @@ const [roleFilter, setRoleFilter] = useState('All');
 
   function flash(msg, type = 'success') { setToast({ msg, type }); setTimeout(() => setToast({ msg: '', type: 'success' }), 3500); }
 
+  function handleTabChange(newTab) {
+    setTab(newTab);
+    setMobileOpen(false);
+  }
+
   useEffect(() => {
     getPendingUsers().then(r => setPendingCount(Array.isArray(r) ? r.length : (r?.data?.length ?? 0))).catch(() => {});
   }, []);
@@ -67,8 +74,8 @@ const [roleFilter, setRoleFilter] = useState('All');
       getAllBookings(1, 5).then(r => setRecentBooks(r.data || [])).catch(() => {});
     }
     if (tab === 'users') {
-  getAllUsers().then(r => setAllUsers(r.data || [])).catch(() => {});
-}
+      getAllUsers().then(r => setAllUsers(r.data || [])).catch(() => {});
+    }
     if (tab === 'approvals') {
       getPendingUsers()
         .then(r => { const arr = Array.isArray(r) ? r : (r?.data || []); setPendingUsers(arr); setPendingCount(arr.length); })
@@ -103,27 +110,24 @@ const [roleFilter, setRoleFilter] = useState('All');
     } catch (e) { flash(e.message, 'error'); }
   }
 
+  async function handleToggleUserActive(user) {
+    const next = !user.isActive;
+    if (!window.confirm(`${next ? 'Activate' : 'Deactivate'} ${user.firstName} ${user.lastName}?`)) return;
+    try {
+      await setUserStatus(user.userId, next);
+      setAllUsers(u => u.map(x => x.userId === user.userId ? { ...x, isActive: next } : x));
+      flash(`User ${next ? 'activated' : 'deactivated'}.`);
+    } catch (e) { flash(e.message, 'error'); }
+  }
 
-async function handleToggleUserActive(user) {
-  const next = !user.isActive;
-  if (!window.confirm(`${next ? 'Activate' : 'Deactivate'} ${user.firstName} ${user.lastName}?`)) return;
-  try {
-    await setUserStatus(user.userId, next);
-    setAllUsers(u => u.map(x => x.userId === user.userId ? { ...x, isActive: next } : x));
-    flash(`User ${next ? 'activated' : 'deactivated'}.`);
-  } catch (e) { flash(e.message, 'error'); }
-}
-
-async function handleDeleteUser(user) {
-  if (!window.confirm(`Permanently delete ${user.firstName} ${user.lastName}? This cannot be undone.`)) return;
-  try {
-    await deleteUser(user.userId);
-    setAllUsers(u => u.filter(x => x.userId !== user.userId));
-    flash('User deleted.');
-  } catch (e) { flash(e.message, 'error'); }
-}
-
-
+  async function handleDeleteUser(user) {
+    if (!window.confirm(`Permanently delete ${user.firstName} ${user.lastName}? This cannot be undone.`)) return;
+    try {
+      await deleteUser(user.userId);
+      setAllUsers(u => u.filter(x => x.userId !== user.userId));
+      flash('User deleted.');
+    } catch (e) { flash(e.message, 'error'); }
+  }
 
   async function handleCreateCar() {
     setCarFormErr('');
@@ -184,32 +188,45 @@ async function handleDeleteUser(user) {
   return (
     <div className="d-flex min-vh-100" style={{ fontFamily: 'system-ui, sans-serif' }}>
       <AdminSidebar
-        tab={tab} setTab={setTab} userName={userName} initial={initial}
-        pendingCount={pendingCount} onLogout={() => { logout(); navigate('/'); }}
+        tab={tab}
+        setTab={handleTabChange}
+        userName={userName}
+        initial={initial}
+        pendingCount={pendingCount}
+        onLogout={() => { logout(); navigate('/'); }}
+        mobileOpen={mobileOpen}
+        onClose={() => setMobileOpen(false)}
       />
 
       <div className="rr-content flex-grow-1">
-        <AdminTopbar tab={tab} userName={userName} pendingCount={pendingCount} setTab={setTab} today={TODAY} />
+        <AdminTopbar
+          tab={tab}
+          userName={userName}
+          pendingCount={pendingCount}
+          setTab={handleTabChange}
+          today={TODAY}
+          onMenuOpen={() => setMobileOpen(true)}
+        />
 
         <div style={{ padding: '28px 32px' }}>
 
           {tab === 'overview' && (
             <OverviewTab
               stats={stats} recentBooks={recentBooks} pendingCount={pendingCount}
-              setTab={setTab} setShowCarForm={setShowCarForm} setShowPromoForm={setShowPromoForm}
+              setTab={handleTabChange} setShowCarForm={setShowCarForm} setShowPromoForm={setShowPromoForm}
             />
           )}
           {tab === 'users' && (
-  <UserManagementTab
-    allUsers={allUsers}
-    userSearch={userSearch}
-    setUserSearch={setUserSearch}
-    roleFilter={roleFilter}
-    setRoleFilter={setRoleFilter}
-    handleToggleUserActive={handleToggleUserActive}
-    handleDeleteUser={handleDeleteUser}
-  />
-)}
+            <UserManagementTab
+              allUsers={allUsers}
+              userSearch={userSearch}
+              setUserSearch={setUserSearch}
+              roleFilter={roleFilter}
+              setRoleFilter={setRoleFilter}
+              handleToggleUserActive={handleToggleUserActive}
+              handleDeleteUser={handleDeleteUser}
+            />
+          )}
           {tab === 'approvals' && (
             <UserApprovalsTab pendingUsers={pendingUsers} handleApprove={handleApprove} />
           )}

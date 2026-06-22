@@ -5,7 +5,18 @@
   --rr-bg: #f1f0ea;
 }
 
-.rr-sidebar { width: 210px; background: var(--rr-dark); color: #fff; position: fixed; top:0; left:0; bottom:0; z-index:20; }
+/* ── Sidebar ─────────────────────────────────────────────────────────────── */
+.rr-sidebar {
+  width: 210px;
+  background: var(--rr-dark);
+  color: #fff;
+  position: fixed;
+  top: 0; left: 0; bottom: 0;
+  z-index: 1050;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.25s ease;
+}
 .rr-sidebar-logo { width:28px; height:28px; background: var(--rr-orange); border-radius:6px; }
 .rr-sidebar-avatar { width:36px; height:36px; background: var(--rr-orange); border-radius:50%; font-weight:700; font-size:15px; }
 
@@ -15,9 +26,41 @@
 
 .rr-logout-btn { border:none; background:transparent; color: var(--rr-orange); font-size:13px; border-radius:8px; }
 
+/* Sidebar overlay (mobile) */
+.rr-sidebar-overlay {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 1040;
+  cursor: pointer;
+}
+.rr-sidebar-overlay.visible { display: block; }
+
+/* Close button inside sidebar (mobile only) */
+.rr-sidebar-close-btn {
+  display: none;
+  background: none; border: none;
+  color: #aaa; font-size: 22px; line-height: 1; padding: 0; cursor: pointer;
+}
+
+/* ── Content area ────────────────────────────────────────────────────────── */
 .rr-content { margin-left:210px; background: var(--rr-bg); min-height:100vh; }
+
+/* ── Topbar ──────────────────────────────────────────────────────────────── */
 .rr-topbar { background:#fff; border-bottom:1px solid #e8e8e8; padding:14px 32px; position:sticky; top:0; z-index:10; }
 
+/* Hamburger button (hidden on desktop) */
+.rr-mobile-menu-btn {
+  display: none;
+  background: none;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  width: 38px; height: 38px;
+  font-size: 17px; cursor: pointer;
+  align-items: center; justify-content: center; flex-shrink: 0;
+}
+
+/* ── Cards & common components ───────────────────────────────────────────── */
 .rr-card { background:#fff; border-radius:14px; box-shadow:0 1px 6px rgba(0,0,0,0.07); border:1px solid #eee; }
 .rr-stat-card { border-radius:12px; width:48px; height:48px; font-size:22px; }
 
@@ -37,9 +80,9 @@
 .rr-badge-pill { padding:3px 11px; border-radius:20px; font-size:11px; font-weight:600; }
 
 .rr-modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:999; }
-.rr-modal { background:#fff; border-radius:20px; padding:36px; width:460px; box-shadow:0 20px 60px rgba(0,0,0,0.25); }
+.rr-modal { background:#fff; border-radius:20px; padding:36px; width:460px; max-width:calc(100vw - 32px); box-shadow:0 20px 60px rgba(0,0,0,0.25); }
 
-.rr-toast { position:fixed; bottom:28px; right:28px; background: var(--rr-dark); color:#fff; padding:13px 22px; border-radius:12px; box-shadow:0 8px 24px rgba(0,0,0,0.2); font-size:14px; font-weight:500; z-index:9999; }
+.rr-toast { position:fixed; bottom:28px; right:28px; background: var(--rr-dark); color:#fff; padding:13px 22px; border-radius:12px; box-shadow:0 8px 24px rgba(0,0,0,0.2); font-size:14px; font-weight:500; z-index:9999; max-width: calc(100vw - 48px); }
 .rr-toast.error { background:#dc2626; }
 
 .rr-pending-banner { background:#fffbeb; border:1px solid #fcd34d; border-radius:12px; padding:14px 20px; }
@@ -47,3 +90,107 @@
 .rr-fleet-img-wrap { position:relative; height:150px; }
 .rr-promo-icon { width:52px; height:52px; border-radius:12px; font-size:22px; }
 .rr-w-200 { width:200px; }
+
+/* Scrollable table wrapper */
+.rr-scrollable-table { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+/* ── Responsive grids ────────────────────────────────────────────────────── */
+
+/* Stats grid: 4 cols → 2 → 1 */
+.rr-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+/* Quick actions grid: 4 cols → 2 → 1 */
+.rr-quick-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+/* Fleet grid: 3 cols → 2 → 1 */
+.rr-fleet-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   RESPONSIVE BREAKPOINTS
+   ══════════════════════════════════════════════════════════════════════ */
+
+/* Tablet ≤991px — sidebar becomes off-canvas drawer */
+@media (max-width: 991.98px) {
+  .rr-sidebar {
+    transform: translateX(-100%);
+    width: 260px;
+  }
+  .rr-sidebar.rr-sidebar-open {
+    transform: translateX(0);
+    box-shadow: 8px 0 32px rgba(0,0,0,0.3);
+  }
+  .rr-sidebar-close-btn { display: block; }
+  .rr-sidebar-overlay.visible { display: block; }
+
+  .rr-content { margin-left: 0 !important; }
+
+  .rr-mobile-menu-btn { display: inline-flex; }
+
+  .rr-topbar { padding: 12px 20px; }
+
+  .rr-stats-grid { grid-template-columns: repeat(2, 1fr); }
+  .rr-quick-grid  { grid-template-columns: repeat(2, 1fr); }
+  .rr-fleet-grid  { grid-template-columns: repeat(2, 1fr); }
+
+  .rr-stat-value { font-size: 22px !important; }
+}
+
+/* Large phones ≤767px */
+@media (max-width: 767.98px) {
+  .rr-topbar { padding: 10px 16px; }
+
+  div[style*="padding: '28px 32px'"],
+  div[style*='padding: 28px 32px'] {
+    padding: 16px !important;
+  }
+
+  .rr-stats-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .rr-quick-grid  { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .rr-fleet-grid  { grid-template-columns: 1fr; }
+
+  .rr-modal { padding: 24px 20px; border-radius: 16px; }
+
+  .rr-toast { bottom: 16px; right: 16px; left: 16px; max-width: none; text-align: center; }
+
+  /* Report controls stack vertically */
+  .rr-report-controls { flex-direction: column !important; align-items: stretch !important; }
+  .rr-report-controls > * { width: 100%; }
+  .rr-report-btn-row { flex-direction: row !important; }
+  .rr-report-btn-row button { flex: 1; }
+
+  /* User approval actions stack */
+  .rr-approval-actions { flex-direction: row !important; min-width: unset !important; width: 100%; }
+  .rr-approval-actions button { flex: 1; }
+  .rr-user-approval-card > .d-flex { flex-direction: column !important; }
+}
+
+/* Small phones ≤575px */
+@media (max-width: 575.98px) {
+  .rr-stats-grid { grid-template-columns: 1fr; }
+  .rr-quick-grid  { grid-template-columns: 1fr; }
+
+  .rr-topbar { flex-wrap: wrap; gap: 6px; }
+
+  .rr-pending-banner { flex-direction: column !important; align-items: flex-start !important; gap: 10px; }
+
+  /* Hide date in topbar on very small screens */
+  .rr-topbar-date-admin { display: none; }
+
+  .rr-promo-card { flex-direction: column !important; align-items: flex-start !important; }
+  .rr-promo-card .d-flex.gap-2 { margin-top: 8px; width: 100%; }
+  .rr-promo-card .d-flex.gap-2 button { flex: 1; }
+}
