@@ -13,7 +13,10 @@ export default function Login() {
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  function set(k, v) { setForm(f => ({ ...f, [k]: v })); setError(''); }
+  function set(k, v) { 
+    setForm(f => ({ ...f, [k]: v }));
+    setError('');
+   }
 
   async function handleSubmit() {
     setLoading(true); setError('');
