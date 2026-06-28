@@ -3,8 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import {
   getAgentBookings, getAgentCars, createCar, deleteCar, updateCar, returnCar,
   getMaintenanceAlerts, addMaintenanceAlert, updateAlertStatus,
-  gateCheckout, gateCheckin,
+  gateCheckout, gateCheckin, getAgentCarReviews,
 } from '../services';
+import ReviewsTab from '../components/agent-dashboard/ReviewsTab';
 import { useAuth } from '../context/AuthContext';
 import '../styles/agent-dashboard.css';
 
@@ -59,6 +60,7 @@ export default function AgentDashboard() {
   const [bookings,  setBookings]  = useState([]);
   const [myCars,    setMyCars]    = useState([]);
   const [alerts,    setAlerts]    = useState([]);
+  const [reviews, setReviews] = useState([]);
 
   // ── modals ────────────────────────────────────────────────────────────────
   const [gateModal,  setGateModal]  = useState(null); // {type, reservationId}
@@ -87,6 +89,10 @@ export default function AgentDashboard() {
     getAgentBookings(userId, 1, 100)
       .then(r => setBookings(r.data || []))
       .catch(() => {});
+
+    getAgentCarReviews(userId, 1, 100)
+  .then(r => setReviews(r.data || []))
+  .catch(() => {});
 
     getAgentCars(userId, 1, 100)
       .then(r => setMyCars(r.data || []))
@@ -248,12 +254,12 @@ export default function AgentDashboard() {
   const confirmedBookings = bookings.filter(b => b.status === 'confirmed');
 
   const MENU_TITLES = {
-    bookings: 'My Bookings',
-    gate: 'Gate Logistics',
-    fleet: 'My Fleet',
-    maintenance: 'Maintenance',
-  };
-
+  bookings: 'My Bookings',
+  gate: 'Gate Logistics',
+  fleet: 'My Fleet',
+  reviews: 'Reviews',
+  maintenance: 'Maintenance',
+};
   return (
     <div className="d-flex" style={{ minHeight: '100vh' }}>
       <AgentSidebar
@@ -312,6 +318,9 @@ export default function AgentDashboard() {
               />
             </>
           )}
+          {tab === 'reviews' && (
+  <ReviewsTab reviews={reviews} />
+)}
 
           {tab === 'maintenance' && (
             <MaintenanceTab

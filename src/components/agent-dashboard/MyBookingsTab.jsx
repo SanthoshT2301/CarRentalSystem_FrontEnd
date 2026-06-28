@@ -13,7 +13,7 @@ export default function MyBookingsTab({ bookings, doReturn }) {
           <table className="table mb-0">
             <thead>
               <tr>
-                {['Booking ID', 'Car ID', 'Pickup', 'Drop-off', 'Dates', 'Amount', 'Status', 'Actions'].map(h => (
+                {['Booking ID', 'Car ID', 'Pickup', 'Drop-off', 'Dates', 'Amount', 'Status' ].map(h => (
                   <th key={h} className="rr-th">{h}</th>
                 ))}
               </tr>
@@ -28,13 +28,7 @@ export default function MyBookingsTab({ bookings, doReturn }) {
                   <td className="rr-td" style={{ whiteSpace: 'nowrap' }}>{b.pickupDate} → {b.dropoffDate}</td>
                   <td className="rr-td fw-semibold" style={{ color: '#e85d24', whiteSpace: 'nowrap' }}>₹{b.totalAmount}</td>
                   <td className="rr-td"><StatusBadge status={b.status} /></td>
-                  <td className="rr-td">
-                    {b.status === 'confirmed' && (
-                      <button onClick={() => doReturn(b.id)} className="rr-action-btn" style={{ borderColor: '#fca5a5', color: '#dc2626' }}>
-                        Return
-                      </button>
-                    )}
-                  </td>
+                  
                 </tr>
               ))}
               {bookings.length === 0 && (

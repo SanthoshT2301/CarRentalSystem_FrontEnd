@@ -6,9 +6,7 @@ export default function FleetManagementTab({
     <div>
       <div className="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
         <div className="fw-bold" style={{ fontSize: 22 }}>Fleet Management</div>
-        <button onClick={() => setShowCarForm(true)} className="rr-bg-orange fw-semibold" style={{ padding: '10px 22px', borderRadius: 10, fontSize: 14 }}>
-          + Add Car
-        </button>
+       
       </div>
 
       {showCarForm && (

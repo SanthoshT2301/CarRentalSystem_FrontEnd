@@ -2,6 +2,7 @@ const MENU = [
   { key: 'bookings',    icon: '📋', label: 'My Bookings' },
   { key: 'gate',        icon: '🚧', label: 'Gate Logistics' },
   { key: 'fleet',       icon: '🚗', label: 'My Fleet' },
+  { key: 'reviews',     icon: '⭐', label: 'Reviews' },
   { key: 'maintenance', icon: '🔧', label: 'Maintenance' },
 ];
 

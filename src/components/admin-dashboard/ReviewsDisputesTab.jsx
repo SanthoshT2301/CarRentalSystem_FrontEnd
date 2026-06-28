@@ -43,7 +43,7 @@ export default function ReviewsDisputesTab({ reviews, setDisputeModal, setDisput
             <p className="m-0" style={{ color:'#555', fontSize:13, lineHeight:1.5 }}>{r.comment}</p>
             {r.isDisputed && r.disputeResolution && (
               <div className="mt-2" style={{ background:'#fffbeb', padding:'8px 12px', borderRadius:8, fontSize:12, color:'#92400e' }}>
-                📝 Grounds: {r.disputeResolution}
+                📝 Grounds: {r.disputeResolution}   
               </div>
             )}
           </div>
