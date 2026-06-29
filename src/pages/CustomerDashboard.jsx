@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getCars, getMyBookings, cancelBooking, addReview, getAllReviews, extendReservation } from '../services';
+import { getCars, getMyBookings, cancelBooking, addReview, getAllReviews, extendReservation, getMyPaymentHistory } from '../services';
 import { useAuth } from '../context/AuthContext';
-
+import BillingTab from '../components/customer-dashboard/BillingTab';
 import Sidebar, { SIDEBAR_WIDTH } from '../components/customer-dashboard/Sidebar';
 import TopBar from '../components/customer-dashboard/TopBar';
 import BrowseCarsTab from '../components/customer-dashboard/BrowseCarsTab';
@@ -23,7 +23,7 @@ export default function CustomerDashboard() {
   const navigate = useNavigate();
   const [tab, setTab] = useState('browse');
   const [mobileOpen, setMobileOpen] = useState(false);
-
+  const [payments, setPayments] = useState([]);
   // Browse Cars state
   const [cars, setCars] = useState([]);
   const [carsLoading, setCarsLoading] = useState(true);
@@ -34,7 +34,8 @@ export default function CustomerDashboard() {
   const [maxPrice, setMaxPrice] = useState(10000);
   const [carPage, setCarPage] = useState(1);
   const [carTotalPages, setCarTotalPages] = useState(1);
-
+const [pickupDate, setPickupDate] = useState('');
+const [dropoffDate, setDropoffDate] = useState('');
   // Reservations state
   const [bookings, setBookings] = useState([]);
   const [bookPage, setBookPage] = useState(1);
@@ -57,26 +58,28 @@ export default function CustomerDashboard() {
   const [toast, setToast] = useState('');
   function showToast(msg) { setToast(msg); setTimeout(() => setToast(''), 3000); }
 
-  useEffect(() => {
-    setCarsLoading(true);
-    getCars(carPage, 9)
-      .then(r => { setCars(r.data || []); setCarTotalPages(r.totalPages || 1); })
-      .finally(() => setCarsLoading(false));
-  }, [carPage]);
+useEffect(() => {
+  setCarsLoading(true);
+  getCars(carPage, 9, { location: cityFilter, type: typeFilter, pickupDate, dropoffDate })
+    .then(r => { setCars(r.data || []); setCarTotalPages(r.totalPages || 1); })
+    .finally(() => setCarsLoading(false));
+}, [carPage, cityFilter, typeFilter, pickupDate, dropoffDate]);
 
   useEffect(() => {
     getMyBookings(userId, bookPage, 10)
       .then(r => { setBookings(r.data || []); setBookTotalPages(r.totalPages || 1); })
       .catch(() => {});
   }, [bookPage]);
-
+  useEffect(() => {
+  getMyPaymentHistory(userId).then(setPayments).catch(() => {});
+}, [userId]);
   useEffect(() => {
     getAllReviews(1, 50).then(r => {
       setMyReviews((r.data || []).filter(rv => String(rv.userId) === String(userId)));
     }).catch(() => {});
   }, []);
 
-  const CITIES = ['All', ...Array.from(new Set(cars.map(c => c.location).filter(Boolean)))];
+  const CITIES = ['All', 'Chennai', 'Madurai', 'Coimbatore', 'Trichy'];
   const TYPES = ['All', 'Sedan', 'SUV', 'Hatchback', 'Luxury', 'Compact'];
 
   const filteredCars = cars.filter(c => {
@@ -173,6 +176,8 @@ export default function CustomerDashboard() {
               carTotalPages={carTotalPages}
               filteredCars={filteredCars}
               CITIES={CITIES} TYPES={TYPES}
+               pickupDate={pickupDate} setPickupDate={setPickupDate}
+  dropoffDate={dropoffDate} setDropoffDate={setDropoffDate}
               navigate={navigate}
             />
           )}
@@ -196,7 +201,7 @@ export default function CustomerDashboard() {
               myReviews={myReviews}
             />
           )}
-
+          {tab === 'billing' && <BillingTab payments={payments} />}
           {tab === 'profile' && <ProfileTab bookings={bookings} />}
         </div>
       </div>

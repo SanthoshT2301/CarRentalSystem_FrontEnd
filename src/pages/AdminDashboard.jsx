@@ -1,14 +1,16 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  getAdminStats, getCars, createCar, deleteCar,
+  getAdminStats, getCars, createCar, updateCar, deleteCar,
   getAllPromotions, addPromotion, togglePromotion, deletePromotion,
   getAllReviews, flagDispute, resolveDispute,
   getBookingReport, getRevenueReport, getReviewReport, getPerformanceReport,
   downloadReport,
   getAllBookings, getPendingUsers, approveUser,
-  getAllUsers, setUserStatus, deleteUser,
-} from '../services';
+  getAllUsers, setUserStatus, deleteUser, createUserByAdmin, updateUserByAdmin,
+} from '../services'
+import EditUserModal from '../components/admin-dashboard/EditUserModal';
+import EditCarModal from '../components/admin-dashboard/EditCarModal';
 import { useAuth } from '../context/AuthContext';
 import '../styles/dashboard.css';
 
@@ -56,6 +58,16 @@ export default function AdminDashboard() {
   const [promoForm, setPromoForm] = useState({ code:'', discountPercent:10, description:'', active:true });
   const [disputeModal, setDisputeModal] = useState(null);
   const [disputeText, setDisputeText]   = useState('');
+  const [showUserForm, setShowUserForm] = useState(false);
+const [userForm, setUserForm] = useState({ firstName:'', lastName:'', email:'', password:'', phone:'', roleId:2 });
+const [userFormErr, setUserFormErr] = useState('');
+const [editingUser, setEditingUser] = useState(null);
+const [editUserForm, setEditUserForm] = useState({ firstName:'', lastName:'', email:'', phone:'', roleId:2 });
+const [editUserErr, setEditUserErr] = useState('');
+
+const [editCarModal, setEditCarModal] = useState(null);
+const [editCarForm, setEditCarForm] = useState({ make:'', model:'', pricePerDay:'', pricePerHour:'' });
+const [editCarErr, setEditCarErr] = useState('');
 
   function flash(msg, type = 'success') { setToast({ msg, type }); setTimeout(() => setToast({ msg: '', type: 'success' }), 3500); }
 
@@ -86,7 +98,53 @@ export default function AdminDashboard() {
     if (tab === 'disputes') getAllReviews(1, 100).then(r => setReviews(r.data || [])).catch(() => {});
     if (tab === 'reports') loadReport();
   }, [tab]);
+async function handleCreateUser() {
+  setUserFormErr('');
+  try {
+    const r = await createUserByAdmin(userForm);
+    setAllUsers(u => [...u, r.user]);
+    setShowUserForm(false);
+    setUserForm({ firstName:'', lastName:'', email:'', password:'', phone:'', roleId:2 });
+    flash('User created.');
+  } catch (e) { setUserFormErr(e.message); }
+}
 
+function openEditUser(u) {
+  setEditingUser(u);
+  setEditUserForm({ firstName: u.firstName, lastName: u.lastName || '', email: u.email, phone: u.phone || '', roleId: u.roleId || 2 });
+  setEditUserErr('');
+}
+
+async function handleUpdateUser() {
+  setEditUserErr('');
+  try {
+    const r = await updateUserByAdmin(editingUser.userId, editUserForm);
+    setAllUsers(u => u.map(x => x.userId === editingUser.userId ? r.user : x));
+    setEditingUser(null);
+    flash('User updated.');
+  } catch (e) { setEditUserErr(e.message); }
+}
+
+function openEditCarModal(car) {
+  setEditCarModal(car);
+  setEditCarForm({ make: car.make, model: car.model, pricePerDay: car.pricePerDay, pricePerHour: car.pricePerHour || '' });
+  setEditCarErr('');
+}
+
+async function handleSaveCarEdit() {
+  setEditCarErr('');
+  try {
+    const updated = await updateCar(editCarModal.id, {
+      make: editCarForm.make,
+      model: editCarForm.model,
+      pricePerDay: editCarForm.pricePerDay !== '' ? parseFloat(editCarForm.pricePerDay) : null,
+      pricePerHour: editCarForm.pricePerHour !== '' ? parseFloat(editCarForm.pricePerHour) : null,
+    });
+    setCars(c => c.map(x => x.id === editCarModal.id ? { ...x, ...updated } : x));
+    setEditCarModal(null);
+    flash('Car updated.');
+  } catch (e) { setEditCarErr(e.message); }
+}
   async function loadReport() {
     try {
       const { start, end } = dateRange;
@@ -217,15 +275,19 @@ export default function AdminDashboard() {
             />
           )}
           {tab === 'users' && (
-            <UserManagementTab
-              allUsers={allUsers}
-              userSearch={userSearch}
-              setUserSearch={setUserSearch}
-              roleFilter={roleFilter}
-              setRoleFilter={setRoleFilter}
-              handleToggleUserActive={handleToggleUserActive}
-              handleDeleteUser={handleDeleteUser}
-            />
+           <UserManagementTab
+  allUsers={allUsers}
+  userSearch={userSearch}
+  setUserSearch={setUserSearch}
+  roleFilter={roleFilter}
+  setRoleFilter={setRoleFilter}
+  handleToggleUserActive={handleToggleUserActive}
+  handleDeleteUser={handleDeleteUser}
+  showUserForm={showUserForm} setShowUserForm={setShowUserForm}
+  userForm={userForm} setUserForm={setUserForm}
+  userFormErr={userFormErr} handleCreateUser={handleCreateUser}
+  openEditUser={openEditUser}
+/>
           )}
           {tab === 'approvals' && (
             <UserApprovalsTab pendingUsers={pendingUsers} handleApprove={handleApprove} />
@@ -234,11 +296,12 @@ export default function AdminDashboard() {
           {tab === 'bookings' && <AllBookingsTab />}
 
           {tab === 'fleet' && (
-            <FleetManagementTab
-              cars={cars} showCarForm={showCarForm} setShowCarForm={setShowCarForm}
-              carForm={carForm} setCarForm={setCarForm} carFormErr={carFormErr} setCarFormErr={setCarFormErr}
-              handleCreateCar={handleCreateCar} handleDeleteCar={handleDeleteCar}
-            />
+           <FleetManagementTab
+  cars={cars} showCarForm={showCarForm} setShowCarForm={setShowCarForm}
+  carForm={carForm} setCarForm={setCarForm} carFormErr={carFormErr} setCarFormErr={setCarFormErr}
+  handleCreateCar={handleCreateCar} handleDeleteCar={handleDeleteCar}
+  openEditCarModal={openEditCarModal}
+/>
           )}
 
           {tab === 'promotions' && (
@@ -283,6 +346,14 @@ export default function AdminDashboard() {
       )}
 
       <Toast toast={toast} />
+      <EditUserModal
+  editingUser={editingUser} editForm={editUserForm} setEditForm={setEditUserForm}
+  editErr={editUserErr} setEditingUser={setEditingUser} handleUpdateUser={handleUpdateUser}
+/>
+<EditCarModal
+  editCarModal={editCarModal} editCarForm={editCarForm} setEditCarForm={setEditCarForm}
+  editCarErr={editCarErr} setEditCarModal={setEditCarModal} handleSaveCarEdit={handleSaveCarEdit}
+/>
     </div>
   );
 }

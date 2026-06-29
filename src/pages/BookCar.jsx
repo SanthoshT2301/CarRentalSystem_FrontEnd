@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getCarById, createBooking, validatePromoCode } from '../services';
+import { getCarById, createBooking, validatePromoCode, checkCarAvailability } from '../services';
 import { useAuth } from '../context/AuthContext';
 const LOCATIONS = ['Chennai', 'Madurai', 'Coimbatore', 'Trichy'];
 
@@ -16,6 +16,7 @@ export default function BookCar() {
     paymentMethodId: 1, cardNumber: '', expiryDate: '', cvv: '', payPalEmail: '',
     address: '',
   });
+  const [availability, setAvailability] = useState(null);
   const [promo, setPromo] = useState('');
   const [promoData, setPromoData] = useState(null);
   const [promoError, setPromoError] = useState('');
@@ -23,6 +24,12 @@ export default function BookCar() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => { getCarById(carId).then(setCar).catch(() => navigate('/')); }, [carId]);
+  useEffect(() => {
+  const start = form.pickupDate;
+  const end = mode === 'daily' ? form.dropoffDate : form.pickupDate;
+  if (!start || !end) { setAvailability(null); return; }
+  checkCarAvailability(carId, start, end).then(r => setAvailability(r.available)).catch(() => setAvailability(null));
+}, [carId, form.pickupDate, form.dropoffDate, mode]);
 
   function set(k, v) { setForm(f => ({ ...f, [k]: v })); }
 
@@ -244,14 +251,24 @@ export default function BookCar() {
               </div>
 
               {error && <p style={{ color: '#dc2626', fontSize: 13, marginBottom: 12 }}>{error}</p>}
+                
 
-              <button onClick={handleBook} disabled={loading} style={{
+
+            {availability === false && (
+              <p style={{ color: '#dc2626', fontSize: 12, marginBottom: 12 }}>
+                ⚠ This car is already booked for the selected dates. Please choose different dates.
+              </p>
+            )}
+            <button onClick={handleBook} disabled={loading || availability === false} style={{
                 width: '100%', padding: '14px', background: '#e85d24', color: '#fff',
                 border: 'none', borderRadius: 10, fontWeight: 700, fontSize: 15,
                 cursor: 'pointer', opacity: loading ? 0.7 : 1,
-              }}>
-                {loading ? 'Processing...' : 'Confirm Booking'}
-              </button>
+              }}> {loading ? 'Processing...' : 'Confirm Booking'}</button>
+
+
+
+
+              
               <p style={{ color: '#aaa', fontSize: 11, textAlign: 'center', marginTop: 12 }}>Cancel for free up to 2 hours before pickup</p>
             </div>
           </div>

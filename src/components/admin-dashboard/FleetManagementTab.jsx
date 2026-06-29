@@ -1,6 +1,6 @@
 export default function FleetManagementTab({
   cars, showCarForm, setShowCarForm, carForm, setCarForm, carFormErr, setCarFormErr,
-  handleCreateCar, handleDeleteCar,
+  handleCreateCar, handleDeleteCar, openEditCarModal,
 }) {
   return (
     <div>
@@ -79,9 +79,14 @@ export default function FleetManagementTab({
                 <div className="rr-orange fw-bold">₹{car.pricePerDay}/day</div>
               </div>
               <div className="text-secondary mb-3" style={{ fontSize: 12 }}>{car.type} · {car.location} · {car.year}</div>
-              <button onClick={() => handleDeleteCar(car.id)} className="w-100 border-0 fw-semibold" style={{ padding: 8, background: '#fee2e2', color: '#dc2626', borderRadius: 8, fontSize: 13 }}>
-                🗑 Delete Car
-              </button>
+             <div className="d-flex gap-2">
+  <button onClick={() => openEditCarModal(car)} className="w-50 border-0 fw-semibold" style={{ padding: 8, background: '#dbeafe', color: '#2563eb', borderRadius: 8, fontSize: 13 }}>
+    ✏ Edit
+  </button>
+  <button onClick={() => handleDeleteCar(car.id)} className="w-50 border-0 fw-semibold" style={{ padding: 8, background: '#fee2e2', color: '#dc2626', borderRadius: 8, fontSize: 13 }}>
+    🗑 Delete
+  </button>
+</div>
             </div>
           </div>
         ))}

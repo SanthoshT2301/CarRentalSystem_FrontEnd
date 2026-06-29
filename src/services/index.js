@@ -7,3 +7,4 @@ export * from './maintenanceService';
 export * from './gateService';
 export * from './disputeService';
 export * from './adminService';
+export * from './paymentService';

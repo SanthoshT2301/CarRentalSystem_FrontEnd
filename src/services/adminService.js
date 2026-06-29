@@ -10,6 +10,13 @@ export const setUserStatus = (id, isActive) =>
   request(`/admin/users/${id}/status?isActive=${isActive}`, { method: 'PATCH' });
 export const deleteUser = (id) => request(`/admin/users/${id}`, { method: 'DELETE' });
 
+
+export const createUserByAdmin = (body) =>
+  request('/admin/users', { method: 'POST', body: JSON.stringify(body) });
+export const updateUserByAdmin = (id, body) =>
+  request(`/admin/users/${id}`, { method: 'PATCH', body: JSON.stringify(body) });
+
+
 // Reports
 export const getBookingReport = (start, end) =>
   request(`/admin/reports/bookings?StartDate=${start}&EndDate=${end}`);

@@ -3,6 +3,7 @@ const SIDEBAR_WIDTH = 170;
 const MENU = [
   { key: 'browse', icon: '🚗', label: 'Browse Cars' },
   { key: 'reservations', icon: '📋', label: 'My Reservations' },
+  { key: 'billing', icon: '💳', label: 'Billing & Payments' },
   { key: 'reviews', icon: '⭐', label: 'My Reviews' },
   { key: 'profile', icon: '👤', label: 'Profile' },
 ];

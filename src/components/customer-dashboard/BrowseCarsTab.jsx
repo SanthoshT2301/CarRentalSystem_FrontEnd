@@ -12,6 +12,7 @@ export default function BrowseCarsTab({
   availFilter, setAvailFilter, maxPrice, setMaxPrice,
   carPage, setCarPage, carTotalPages, filteredCars,
   CITIES, TYPES, navigate,
+  pickupDate, setPickupDate, dropoffDate, setDropoffDate,
 }) {
   return (
     <div className="rr-browse-layout">
@@ -37,7 +38,11 @@ export default function BrowseCarsTab({
               {CITIES.map(c => <option key={c}>{c}</option>)}
             </select>
           </div>
-
+              <div style={{ marginBottom: 16 }}>
+  <div style={{ fontSize: 11, fontWeight: 600, color: '#888', letterSpacing: 0.5, marginBottom: 8 }}>DATES</div>
+  <input type="date" value={pickupDate} onChange={e => setPickupDate(e.target.value)} className="rr-filter-select mb-2" />
+  <input type="date" value={dropoffDate} onChange={e => setDropoffDate(e.target.value)} className="rr-filter-select" />
+</div>
           <div style={{ marginBottom: 16 }}>
             <div style={{ fontSize: 11, fontWeight: 600, color: '#888', letterSpacing: 0.5, marginBottom: 8 }}>AVAILABILITY</div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
